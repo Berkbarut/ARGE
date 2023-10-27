@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/function_report"
+        android:title="Fonksiyon Raporu" />
+    <item
+        android:id="@+id/temperature_report"
+        android:title="Sıcaklık Raporu" />
+    <item
+        android:id="@+id/time_date_report"
+        android:title="Saat ve Gün Raporu" />
+    <item
+        android:id="@+id/weekly_program_report"
+        android:title="Haftalık Program Raporu" />
+    <item
+        android:id="@+id/battery_report"
+        android:title="Batarya Raporu" />
+    <item
+        android:id="@+id/wifi_report"
+        android:title="Wi-Fi Raporu" />
+</menu>

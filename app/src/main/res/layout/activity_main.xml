@@ -1,0 +1,373 @@
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    tools:layout_editor_absoluteX="0dp"
+    tools:layout_editor_absoluteY="0dp">
+
+    <!-- Kalibrasyon -->
+
+    <EditText
+        android:id="@+id/editTextAralik"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="22dp"
+        android:hint="Aralık girin"
+        app:layout_constraintStart_toEndOf="@+id/textViewAralik"
+        app:layout_constraintTop_toBottomOf="@+id/textViewEndTime" />
+
+    <Button
+        android:id="@+id/buttonDecreaseNegatif"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="14dp"
+        android:text="-"
+        app:layout_constraintStart_toEndOf="@+id/textViewNegatif"
+        app:layout_constraintTop_toBottomOf="@+id/buttonDecreasePozitif" />
+
+    <EditText
+        android:id="@+id/editTextNegatif"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:hint="Değer girin"
+        app:layout_constraintStart_toEndOf="@+id/buttonDecreaseNegatif"
+        app:layout_constraintTop_toBottomOf="@+id/editTextPozitif" />
+
+    <TextView
+        android:id="@+id/textViewNegatif"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="12dp"
+        android:text="Histerisiz \nNegatif"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toStartOf="@+id/buttonDecreaseNegatif"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewPozitif" />
+
+    <Button
+        android:id="@+id/buttonIncreaseNegatif"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="+"
+        app:layout_constraintStart_toEndOf="@+id/editTextNegatif"
+        app:layout_constraintTop_toBottomOf="@+id/buttonIncreasePozitif" />
+
+    <Button
+        android:id="@+id/buttonDecreasePozitif"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="13dp"
+        android:text="-"
+        app:layout_constraintStart_toEndOf="@+id/textViewPozitif"
+        app:layout_constraintTop_toBottomOf="@+id/buttonDecreaseCalibration" />
+
+    <TextView
+        android:id="@+id/textViewPozitif"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="13dp"
+        android:text="Histerisiz \nPozitif"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toStartOf="@+id/buttonDecreasePozitif"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewCalibration" />
+
+    <EditText
+        android:id="@+id/editTextPozitif"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:clickable="false"
+        android:hint="Değer girin"
+        app:layout_constraintStart_toEndOf="@+id/buttonDecreasePozitif"
+        app:layout_constraintTop_toBottomOf="@+id/editTextCalibration" />
+
+    <Button
+        android:id="@+id/buttonIncreasePozitif"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="+"
+        app:layout_constraintStart_toEndOf="@+id/editTextPozitif"
+        app:layout_constraintTop_toBottomOf="@+id/buttonIncreaseCalibration" />
+
+    <Button
+        android:id="@+id/buttonDecreaseCalibration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="64dp"
+        android:text="-"
+        app:layout_constraintStart_toEndOf="@+id/textViewCalibration"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textViewCalibration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="76dp"
+        android:text="Kalibrasyon"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toStartOf="@+id/buttonDecreaseCalibration"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/buttonIncreaseCalibration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="52dp"
+        android:text="+"
+        app:layout_constraintStart_toEndOf="@+id/editTextCalibration"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+    <!-- Heat/Cool -->
+
+    <EditText
+        android:id="@+id/editTextCalibration"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        android:clickable="false"
+        android:hint="Değer girin"
+        app:layout_constraintStart_toEndOf="@+id/buttonDecreaseCalibration"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textViewHeatCool"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="25dp"
+        android:layout_marginEnd="8dp"
+        android:text="Heat/Cool"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toStartOf="@+id/radioGroupHeatCool"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewNegatif" />
+
+    <RadioGroup
+        android:id="@+id/radioGroupHeatCool"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="7dp"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toEndOf="@+id/textViewHeatCool"
+        app:layout_constraintTop_toBottomOf="@+id/buttonDecreaseNegatif">
+
+        <RadioButton
+            android:id="@+id/radioButtonHeat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="Heat" />
+
+        <RadioButton
+            android:id="@+id/radioButtonCool"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cool" />
+    </RadioGroup>
+
+
+    <!-- Fonksiyon -->
+
+    <TextView
+        android:id="@+id/textViewFonksiyon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="20dp"
+        android:text="Fonksiyon"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toStartOf="@+id/FonksiyonSpinner"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewHeatCool" />
+
+    <Spinner
+        android:id="@+id/FonksiyonSpinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toEndOf="@+id/textViewFonksiyon"
+        app:layout_constraintTop_toBottomOf="@+id/radioGroupHeatCool" />
+
+    <!-- Ürün -->
+
+    <TextView
+        android:id="@+id/textViewUrun"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="28dp"
+        android:text="Ürün"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toStartOf="@+id/editTextUrun"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewFonksiyon" />
+
+    <EditText
+        android:id="@+id/editTextUrun"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="11dp"
+        android:hint="Ürün ismi girin"
+        app:layout_constraintStart_toEndOf="@+id/textViewUrun"
+        app:layout_constraintTop_toBottomOf="@+id/FonksiyonSpinner" />
+
+
+    <!-- İşlemci -->
+
+    <TextView
+        android:id="@+id/textViewIslemci"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="39dp"
+        android:layout_marginEnd="20dp"
+        android:text="İşlemci"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toStartOf="@+id/editTextIslemci"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewUrun" />
+
+    <EditText
+        android:id="@+id/editTextIslemci"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="13dp"
+        android:hint="İşlemci ismi girin"
+        app:layout_constraintStart_toEndOf="@+id/textViewIslemci"
+        app:layout_constraintTop_toBottomOf="@+id/editTextUrun" />
+    <!-- Tip -->
+    <TextView
+        android:id="@+id/textViewTip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="26dp"
+        android:layout_marginEnd="21dp"
+        android:text="Tip"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toStartOf="@+id/spinnerTip"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewIslemci" />
+
+    <Spinner
+        android:id="@+id/spinnerTip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="21dp"
+        android:layout_marginTop="17dp"
+        app:layout_constraintStart_toEndOf="@+id/textViewTip"
+        app:layout_constraintTop_toBottomOf="@+id/editTextIslemci" />
+
+    <TextView
+        android:id="@+id/textViewStartTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="32dp"
+        android:text="Başlangıç Zamanı"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/spinnerTip" />
+
+    <TextView
+        android:id="@+id/textViewEndTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="40dp"
+        android:text="Bitiş Zamanı"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewStartTime" />
+
+    <TextView
+        android:id="@+id/textViewAralik"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="32dp"
+        android:text="Aralık"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewEndTime" />
+
+    <Button
+        android:id="@+id/createChartButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="76dp"
+        android:layout_marginBottom="87dp"
+        android:text="Grafik Oluştur"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/editTextAralik" />
+
+    <Button
+        android:id="@+id/reportButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="231dp"
+        android:layout_marginTop="1dp"
+        android:text="Raporla"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/createChartButton" />
+
+
+    <TextureView
+        android:id="@+id/textureView"
+        android:layout_width="309dp"
+        android:layout_height="309dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="55dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/startCameraButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="75dp"
+        android:text="Başlat"
+        app:layout_constraintEnd_toStartOf="@+id/stopCameraButton"
+        app:layout_constraintTop_toBottomOf="@+id/textureView" />
+
+    <Button
+        android:id="@+id/stopCameraButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="85dp"
+        android:text="Durdur"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textureView" />
+
+    <Button
+        android:id="@+id/buttonSave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="76dp"
+        android:layout_marginTop="399dp"
+        android:text="Kaydet"
+        app:layout_constraintStart_toEndOf="@+id/editTextAralik"
+        app:layout_constraintTop_toBottomOf="@+id/buttonIncreaseNegatif" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
