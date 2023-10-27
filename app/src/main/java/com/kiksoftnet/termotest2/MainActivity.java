@@ -83,11 +83,11 @@ public class MainActivity extends AppCompatActivity {
     private CameraDevice.StateCallback stateCallback;
     private CameraManager cameraManager;
     private static final int CAMERA_REQUEST_CODE = 1001; // Kamera isteği için bir istek kodu
-    String heatCoolString="";
-    String fonksiyonString="";
+    String heatCoolString="Heat";
+    String fonksiyonString="TPI";
     String urunString="";
     String islemciString="";
-    String tipString="";
+    String tipString="Kablolu";
 
 
 
@@ -148,7 +148,10 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (calibrationValue > -8.0) {
                     calibrationValue-=0.1;
+
                     editTextCalibration.setText(String.format("%.1f",calibrationValue));
+                    String temp=String.format("%.1f",calibrationValue);
+                    calibrationValue=Double.parseDouble(temp);
                 }
             }
         });
@@ -159,6 +162,9 @@ public class MainActivity extends AppCompatActivity {
                 if (calibrationValue < 8.0) {
                     calibrationValue+=0.1;
                     editTextCalibration.setText(String.format("%.1f",calibrationValue));
+                    String temp=String.format("%.1f",calibrationValue);
+                    calibrationValue=Double.parseDouble(temp);
+
                 }
             }
         });
@@ -170,6 +176,8 @@ public class MainActivity extends AppCompatActivity {
                 if (histerisizPozitifValue > 0.1) {
                     histerisizPozitifValue -= 0.1;
                     editTextPozitif.setText(String.format("%.1f",histerisizPozitifValue));
+                    String temp=String.format("%.1f",histerisizPozitifValue);
+                    histerisizPozitifValue=Double.parseDouble(temp);
                 }
             }
         });
@@ -180,6 +188,10 @@ public class MainActivity extends AppCompatActivity {
                 if (histerisizPozitifValue < 2.0) {
                     histerisizPozitifValue += 0.1;
                     editTextPozitif.setText(String.format("%.1f",histerisizPozitifValue));
+                    String temp=String.format("%.1f",histerisizPozitifValue);
+
+                    histerisizPozitifValue=Double.parseDouble(temp);
+
                 }
             }
         });
@@ -192,6 +204,10 @@ public class MainActivity extends AppCompatActivity {
                 if (histerisizNegatifValue > -2.0) {
                     histerisizNegatifValue -= 0.1;
                     editTextNegatif.setText(String.format("%.1f",histerisizNegatifValue));
+                    String temp=String.format("%.1f",histerisizNegatifValue);
+
+                    histerisizNegatifValue=Double.parseDouble(temp);
+
                 }
             }
         });
@@ -202,6 +218,10 @@ public class MainActivity extends AppCompatActivity {
                 if (histerisizNegatifValue < -0.1) {
                     histerisizNegatifValue += 0.1;
                     editTextNegatif.setText(String.format("%.1f",histerisizNegatifValue));
+                    String temp=String.format("%.1f",histerisizNegatifValue);
+
+                    histerisizNegatifValue=Double.parseDouble(temp);
+
                 }
             }
         });
@@ -250,14 +270,14 @@ public class MainActivity extends AppCompatActivity {
         spinnerTip.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() { //Tip seçme spinner
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                String selectedFunction = (String) spinnerFunction.getSelectedItem();
-                if (selectedFunction.equals("Kablolu")) {
+                String selectedTip = (String) spinnerFunction.getSelectedItem();
+                if (selectedTip.equals("Kablolu")) {
                     // Kablolu seçildiğinde yapılacak işlemler
                     tipString="Kablolu";
-                } else if (selectedFunction.equals("Kablosuz")) {
+                } else if (selectedTip.equals("Kablosuz")) {
                     // Kablosuz seçildiğinde yapılacak işlemler
                     tipString="Kablosuz";
-                } else if (selectedFunction.equals("Wifi")) {
+                } else if (selectedTip.equals("Wifi")) {
                     // Wifi seçildiğinde yapılacak işlemler
                     tipString="Wifi";
                 }
@@ -352,16 +372,24 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
+    private static String ip = "192.168.1.2";// this is the host ip that your data base exists on you can use 10.0.2.2 for local host                                                    found on your pc. use if config for windows to find the ip if the database exists on                                                    your pc
+    private static String port = "1433";// the port sql server runs on
+    private static String Classes = "net.sourceforge.jtds.jdbc.Driver";// the driver that is required for this connection use                                                                           "org.postgresql.Driver" for connecting to postgresql
+    private static String database = "Arge";// the data base name
+    private static String username = "kiksoft";// the user name
+    private static String password = "kik++--**123";// the password
+    private static String url = "jdbc:jtds:sqlserver://"+ip+":"+port+"/"+database; // the connection url string
+
+    private Connection connection = null;
     private void saveDataToMSSQL(float calibrationValue, float pozitifValue, float negatifValue, String heatCoolValue, String functionValue, String productValue, String islemciValue, String tipValue) {
-        Connection connection = null;
+
         ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.INTERNET}, PackageManager.PERMISSION_GRANTED);
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
         try {
-            String jdbcUrl = "jdbc:sqlserver:192.168.1.2:1433;databaseName=Arge;user=kiksoft;password=kik++--**123";
-            Class.forName("net.sourceforge.jtds.jdbc.Driver");
-            connection = DriverManager.getConnection(jdbcUrl);
+            Class.forName(Classes);
+            connection = DriverManager.getConnection(url,username,password);
 
             // Saklı prosedürü çağırma
             String insertProcedure = "{call InsertData(?, ?, ?, ?, ?, ?, ?, ?)}";
@@ -378,6 +406,7 @@ public class MainActivity extends AppCompatActivity {
 
                 callableStatement.execute();
                 // Prosedür başarıyla çağrıldı
+                Toast.makeText(this, "VERİLER GÖNDERİLDİ", Toast.LENGTH_SHORT);
             } catch (SQLException e) {
                 System.out.println("SQL Server Hatası");
                 e.printStackTrace();
