@@ -90,6 +90,17 @@ public class MainActivity extends AppCompatActivity {
     String tipString="Kablolu";
 
 
+    private static String ip = "192.168.1.2";// this is the host ip that your data base exists on you can use 10.0.2.2 for local host                                                    found on your pc. use if config for windows to find the ip if the database exists on                                                    your pc
+    private static String port = "1433";// the port sql server runs on
+    private static String Classes = "net.sourceforge.jtds.jdbc.Driver";// the driver that is required for this connection use                                                                           "org.postgresql.Driver" for connecting to postgresql
+    private static String database = "Arge";// the data base name
+    private static String username = "kiksoft";// the user name
+    private static String password = "kik++--**123";// the password
+    private static String url = "jdbc:jtds:sqlserver://"+ip+":"+port+"/"+database; // the connection url string
+
+    private Connection connection = null;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -270,7 +281,7 @@ public class MainActivity extends AppCompatActivity {
         spinnerTip.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() { //Tip seçme spinner
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                String selectedTip = (String) spinnerFunction.getSelectedItem();
+                String selectedTip = (String) spinnerTip.getSelectedItem();
                 if (selectedTip.equals("Kablolu")) {
                     // Kablolu seçildiğinde yapılacak işlemler
                     tipString="Kablolu";
@@ -372,15 +383,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-    private static String ip = "192.168.1.2";// this is the host ip that your data base exists on you can use 10.0.2.2 for local host                                                    found on your pc. use if config for windows to find the ip if the database exists on                                                    your pc
-    private static String port = "1433";// the port sql server runs on
-    private static String Classes = "net.sourceforge.jtds.jdbc.Driver";// the driver that is required for this connection use                                                                           "org.postgresql.Driver" for connecting to postgresql
-    private static String database = "Arge";// the data base name
-    private static String username = "kiksoft";// the user name
-    private static String password = "kik++--**123";// the password
-    private static String url = "jdbc:jtds:sqlserver://"+ip+":"+port+"/"+database; // the connection url string
-
-    private Connection connection = null;
     private void saveDataToMSSQL(float calibrationValue, float pozitifValue, float negatifValue, String heatCoolValue, String functionValue, String productValue, String islemciValue, String tipValue) {
 
         ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.INTERNET}, PackageManager.PERMISSION_GRANTED);
@@ -390,8 +392,6 @@ public class MainActivity extends AppCompatActivity {
         try {
             Class.forName(Classes);
             connection = DriverManager.getConnection(url,username,password);
-
-            // Saklı prosedürü çağırma
             String insertProcedure = "{call InsertData(?, ?, ?, ?, ?, ?, ?, ?)}";
 
             try (CallableStatement callableStatement = connection.prepareCall(insertProcedure)) {
