@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
     String urunString="";
     String islemciString="";
     String tipString="Kablolu";
-
+    private TCPReceiver tcpReceiver;
 
     private static String ip = "192.168.1.2";// this is the host ip that your data base exists on you can use 10.0.2.2 for local host                                                    found on your pc. use if config for windows to find the ip if the database exists on                                                    your pc
     private static String port = "1433";// the port sql server runs on
@@ -97,11 +97,7 @@ public class MainActivity extends AppCompatActivity {
     private static String username = "kiksoft";// the user name
     private static String password = "kik++--**123";// the password
     private static String url = "jdbc:jtds:sqlserver://"+ip+":"+port+"/"+database; // the connection url string
-
     private Connection connection = null;
-
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -148,10 +144,6 @@ public class MainActivity extends AppCompatActivity {
 
         //Aralık
         editTextAralik = findViewById(R.id.editTextAralik);
-
-
-
-
 
         editTextCalibration.setText(String.valueOf(calibrationValue));
         buttonDecreaseCalibration.setOnClickListener(new View.OnClickListener() { //Kalibrasyon kısmında değer girme
@@ -207,7 +199,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
         editTextNegatif.setText(String.valueOf(histerisizNegatifValue));
         buttonDecreaseNegatif.setOnClickListener(new View.OnClickListener() {//Histerisiz negatif değer girme
             @Override
@@ -236,8 +227,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
-
 
         radioGroupHeatCool.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() { //Heat/Cool seçim
             @Override
@@ -336,6 +325,7 @@ public class MainActivity extends AppCompatActivity {
         textureView = findViewById(R.id.textureView);
         startButton = findViewById(R.id.startCameraButton);
         stopButton = findViewById(R.id.stopCameraButton);
+        tcpReceiver = new TCPReceiver();
 
         // Start butonuna tıklama olayı ekleyin
         startButton.setOnClickListener(new View.OnClickListener() {
@@ -343,10 +333,14 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (!isCameraStarted) {
                     openCamera();
-                    // Kamera başlatıldıktan sonra gerekli işlemleri yapın
                     isCameraStarted = true;
                     startButton.setEnabled(false);
                     stopButton.setEnabled(true);
+
+                    // TCPReceiver'ı başlat
+                    tcpReceiver.startConnection();
+                    // TCPReceiver'ı çalıştır
+                    tcpReceiver.execute();
                 }
             }
         });
@@ -356,11 +350,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (isCameraStarted) {
-                    // Kamerayı durdurma işlemini yapın
                     closeCamera();
                     isCameraStarted = false;
                     startButton.setEnabled(true);
                     stopButton.setEnabled(false);
+
+                    // TCPReceiver'ı durdur
+                    tcpReceiver.stopConnection();
                 }
             }
         });
@@ -378,10 +374,6 @@ public class MainActivity extends AppCompatActivity {
                 saveDataToMSSQL((float)calibrationValue,(float) histerisizPozitifValue,(float)histerisizNegatifValue,heatCoolString,fonksiyonString,urunString,islemciString,tipString);
             }
         });
-
-
-
-
     }
     private void saveDataToMSSQL(float calibrationValue, float pozitifValue, float negatifValue, String heatCoolValue, String functionValue, String productValue, String islemciValue, String tipValue) {
 
@@ -426,8 +418,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
-
 
     private void showDateTimePicker(final boolean isStartTime) {// Zaman seçmek için fonksiyon
         Calendar calendar = Calendar.getInstance();
@@ -532,8 +522,4 @@ public class MainActivity extends AppCompatActivity {
             cameraDevice = null;
         }
     }
-
-
-
-
 }

@@ -92,7 +92,6 @@
         android:id="@+id/buttonIncreasePozitif"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:text="+"
         app:layout_constraintStart_toEndOf="@+id/editTextPozitif"
         app:layout_constraintTop_toBottomOf="@+id/buttonIncreaseCalibration" />
@@ -122,7 +121,7 @@
         android:id="@+id/buttonIncreaseCalibration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="52dp"
+        android:layout_marginTop="64dp"
         android:text="+"
         app:layout_constraintStart_toEndOf="@+id/editTextCalibration"
         app:layout_constraintTop_toTopOf="parent" />
@@ -134,7 +133,7 @@
         android:id="@+id/editTextCalibration"
         android:layout_width="100dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="60dp"
+        android:layout_marginTop="64dp"
         android:clickable="false"
         android:hint="Değer girin"
         app:layout_constraintStart_toEndOf="@+id/buttonDecreaseCalibration"
