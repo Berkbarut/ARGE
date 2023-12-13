@@ -16,7 +16,7 @@ public class TCPReceiver extends AsyncTask<Void, Void, String> {
     // Bağlantıyı başlat
     public void startConnection() {
         try {
-            socket = new Socket("server_ip", 12345); // Sunucu IP ve portunu buraya ekleyin
+            socket = new Socket("server_ip", 12345); // TODO DEĞİŞTİRİLECEK
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (IOException e) {
@@ -38,7 +38,7 @@ public class TCPReceiver extends AsyncTask<Void, Void, String> {
     @Override
     protected String doInBackground(Void... params) {
         // G harfini gönder
-        out.print('g');
+        out.print('m');
         out.flush();
 
         // Sunucudan gelen veriyi oku
@@ -57,4 +57,35 @@ public class TCPReceiver extends AsyncTask<Void, Void, String> {
         // Yapılacak işlemleri burada gerçekleştirin
         // Örneğin, MainActivity içinde bir metod çağırabilirsiniz
     }
+    public String startAndReceiveData() {
+        String receivedData = null;
+
+        try {
+            socket = new Socket("server_ip", 12345); // Sunucu IP ve portunu buraya ekleyin
+            out = new PrintWriter(socket.getOutputStream(), true);
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            // 'g' harfini gönder
+            out.print('g');
+            out.flush();
+
+            // Sunucudan gelen veriyi al
+            receivedData = in.readLine();
+            Log.d("TcpReceiver", "Alınan Veri: " + receivedData);
+        } catch (IOException e) {
+            Log.e("TcpReceiver", "Bağlantı veya veri alma hatası: " + e.getMessage());
+        } finally {
+            try {
+                // Bağlantıları kapat
+                if (out != null) out.close();
+                if (in != null) in.close();
+                if (socket != null) socket.close();
+            } catch (IOException e) {
+                Log.e("TcpReceiver", "Bağlantı kapatma hatası: " + e.getMessage());
+            }
+        }
+
+        return receivedData;
+    }
+
 }

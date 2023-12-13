@@ -11,6 +11,7 @@ import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.util.Log;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.TextureView;
@@ -89,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
     String islemciString="";
     String tipString="Kablolu";
     private TCPReceiver tcpReceiver;
+    private String receivedData;
 
     private static String ip = "192.168.1.2";// this is the host ip that your data base exists on you can use 10.0.2.2 for local host                                                    found on your pc. use if config for windows to find the ip if the database exists on                                                    your pc
     private static String port = "1433";// the port sql server runs on
@@ -327,6 +329,7 @@ public class MainActivity extends AppCompatActivity {
         stopButton = findViewById(R.id.stopCameraButton);
         tcpReceiver = new TCPReceiver();
 
+
         // Start butonuna tıklama olayı ekleyin
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -339,8 +342,8 @@ public class MainActivity extends AppCompatActivity {
 
                     // TCPReceiver'ı başlat
                     tcpReceiver.startConnection();
-                    // TCPReceiver'ı çalıştır
-                    tcpReceiver.execute();
+                    receivedData = tcpReceiver.startAndReceiveData();
+                    handleReceivedData(receivedData);
                 }
             }
         });
@@ -361,6 +364,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
         Button buttonSave = findViewById(R.id.buttonSave);
         buttonSave.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -374,6 +378,40 @@ public class MainActivity extends AppCompatActivity {
                 saveDataToMSSQL((float)calibrationValue,(float) histerisizPozitifValue,(float)histerisizNegatifValue,heatCoolString,fonksiyonString,urunString,islemciString,tipString);
             }
         });
+    }
+
+    private void handleReceivedData(String receivedData) {
+        // Burada receivedData'yı kullanabilirsiniz
+        Log.d("MainActivity", "Gelen Veri: " + receivedData);
+
+        //TODO DEĞİŞKENLERİ SUBSTRINGLE BÖL İSTENEN YERE AT
+
+
+
+        String roomTemp = getSubstringBetween(receivedData, "86", "254");
+        String setTemp = getSubstringBetween(receivedData, "72", "254");
+        String batteryLevel = getSubstringBetween(receivedData, "84", "254");
+        String confortMode = getSubstringBetween(receivedData, "96", "254");
+        String programMode = getSubstringBetween(receivedData, "112", "254");
+        String ecoMode = getSubstringBetween(receivedData, "92", "254");
+        String minute = getSubstringBetween(receivedData, "184", "254");
+        String hour = getSubstringBetween(receivedData, "147", "254");
+        String weekday = getSubstringBetween(receivedData, "192", "254");
+        String activeProgram = getSubstringBetween(receivedData, "198", "254");
+        String lockStatus = getSubstringBetween(receivedData, "220", "254");
+        String segmentStatus = getSubstringBetween(receivedData, "246", "254");
+        String systemOnOff = getSubstringBetween(receivedData, "126", "254");
+
+    }
+    private String getSubstringBetween(String original, String start, String end) {
+        int startIndex = original.indexOf(start);
+        int endIndex = original.indexOf(end, startIndex + start.length());
+
+        if (startIndex != -1 && endIndex != -1) {
+            return original.substring(startIndex + start.length(), endIndex);
+        } else {
+            return "";
+        }
     }
     private void saveDataToMSSQL(float calibrationValue, float pozitifValue, float negatifValue, String heatCoolValue, String functionValue, String productValue, String islemciValue, String tipValue) {
 
