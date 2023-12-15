@@ -14,15 +14,15 @@ public class TCPReceiver extends AsyncTask<Void, Void, String> {
     private BufferedReader in;
 
     // Bağlantıyı başlat
-    public void startConnection() {
-        try {
-            socket = new Socket("server_ip", 12345); // TODO DEĞİŞTİRİLECEK
-            out = new PrintWriter(socket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        } catch (IOException e) {
-            Log.e("TcpReceiver", "Bağlantı hatası: " + e.getMessage());
-        }
-    }
+//    public void startConnection() {
+//        try {
+//            socket = new Socket("192.168.2.245", 9876); // TODO DEĞİŞTİRİLECEK
+//            out = new PrintWriter(socket.getOutputStream(), true);
+//            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+//        } catch (IOException e) {
+//            Log.e("TcpReceiver", "Bağlantı hatası: " + e.getMessage());
+//        }
+//    }
 
     // Bağlantıyı durdur
     public void stopConnection() {
@@ -37,21 +37,30 @@ public class TCPReceiver extends AsyncTask<Void, Void, String> {
 
     @Override
     protected String doInBackground(Void... params) {
-        // G harfini gönder
-        out.print('m');
-        out.flush();
-
-        // Sunucudan gelen veriyi oku
         try {
+            Socket socket = new Socket("192.168.2.245", 9876); // Sunucu IP ve portunu buraya ekleyin
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            // 'g' harfini gönder
+            out.print('g');
+            out.flush();
+
+            // Sunucudan gelen veriyi al
             String receivedData = in.readLine();
             Log.d("TcpReceiver", "Alınan Veri: " + receivedData);
+
+            // Bağlantıları kapat
+            in.close();
+            out.close();
+            socket.close();
+
             return receivedData;
         } catch (IOException e) {
-            Log.e("TcpReceiver", "Veri okuma hatası: " + e.getMessage());
+            Log.e("TcpReceiver", "Hata: " + e.getMessage());
             return null;
         }
     }
-
     @Override
     protected void onPostExecute(String result) {
         // Yapılacak işlemleri burada gerçekleştirin
@@ -61,12 +70,11 @@ public class TCPReceiver extends AsyncTask<Void, Void, String> {
         String receivedData = null;
 
         try {
-            socket = new Socket("server_ip", 12345); // Sunucu IP ve portunu buraya ekleyin
+            socket = new Socket("192.168.2.245", 9876);
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-            // 'g' harfini gönder
-            out.print('g');
+            out.print('m');
             out.flush();
 
             // Sunucudan gelen veriyi al

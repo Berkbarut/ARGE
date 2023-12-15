@@ -16,6 +16,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.TextureView;
 import android.view.View;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -64,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText editTextProduct;
     private EditText editTextIslemci;
     private Spinner spinnerTip;
+    private WebView webView;
 
     private TextView textViewStartTime;
     private TextView textViewEndTime;
@@ -324,36 +327,35 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        textureView = findViewById(R.id.textureView);
         startButton = findViewById(R.id.startCameraButton);
         stopButton = findViewById(R.id.stopCameraButton);
         tcpReceiver = new TCPReceiver();
 
 
-        // Start butonuna tıklama olayı ekleyin
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!isCameraStarted) {
-                    openCamera();
+
                     isCameraStarted = true;
                     startButton.setEnabled(false);
                     stopButton.setEnabled(true);
+                    //TODO THREAD KONULACAK VERİ ÇEKTİKÇE GÖRÜNTÜ DE BURADA YENİLENECEK
 
                     // TCPReceiver'ı başlat
-                    tcpReceiver.startConnection();
+                    //tcpReceiver.startConnection();
+                    new TCPReceiver().execute();
                     receivedData = tcpReceiver.startAndReceiveData();
                     handleReceivedData(receivedData);
+                    //handleReceivedData("86882547280254843325496025411202549212541842254147025419242541988025422012542461254126000111254");
                 }
             }
         });
 
-        // Durdur butonuna tıklama olayı ekleyin
         stopButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (isCameraStarted) {
-                    closeCamera();
                     isCameraStarted = false;
                     startButton.setEnabled(true);
                     stopButton.setEnabled(false);
@@ -378,20 +380,34 @@ public class MainActivity extends AppCompatActivity {
                 saveDataToMSSQL((float)calibrationValue,(float) histerisizPozitifValue,(float)histerisizNegatifValue,heatCoolString,fonksiyonString,urunString,islemciString,tipString);
             }
         });
+
+        webView = findViewById(R.id.webView);
+        configureWebView();
+        loadWebsite();
+    }
+    private void configureWebView() {
+        WebSettings webSettings = webView.getSettings();
+        webSettings.setJavaScriptEnabled(true); // Gerekirse JavaScript'i etkinleştirin
+        // Diğer WebView ayarlarını burada konfigure edebilirsiniz
     }
 
+    private void loadWebsite() {
+        // Görüntülemek istediğiniz web sitesini belirtin
+        String websiteUrl = "http://192.168.1.222:8080/uretim/uretimg.nsf/Arge.xsp";
+        webView.loadUrl(websiteUrl);
+    }
+
+
+
+
+
     private void handleReceivedData(String receivedData) {
-        // Burada receivedData'yı kullanabilirsiniz
         Log.d("MainActivity", "Gelen Veri: " + receivedData);
-
-        //TODO DEĞİŞKENLERİ SUBSTRINGLE BÖL İSTENEN YERE AT
-
-
 
         String roomTemp = getSubstringBetween(receivedData, "86", "254");
         String setTemp = getSubstringBetween(receivedData, "72", "254");
         String batteryLevel = getSubstringBetween(receivedData, "84", "254");
-        String confortMode = getSubstringBetween(receivedData, "96", "254");
+        String comfortMode = getSubstringBetween(receivedData, "96", "254");
         String programMode = getSubstringBetween(receivedData, "112", "254");
         String ecoMode = getSubstringBetween(receivedData, "92", "254");
         String minute = getSubstringBetween(receivedData, "184", "254");
@@ -401,6 +417,9 @@ public class MainActivity extends AppCompatActivity {
         String lockStatus = getSubstringBetween(receivedData, "220", "254");
         String segmentStatus = getSubstringBetween(receivedData, "246", "254");
         String systemOnOff = getSubstringBetween(receivedData, "126", "254");
+
+        //TODO BU STRINGLER NEREDE KULLANILACAK (SQLE GÖNDER)
+
 
     }
     private String getSubstringBetween(String original, String start, String end) {
@@ -540,24 +559,5 @@ public class MainActivity extends AppCompatActivity {
         popupMenu.show();
     }
 
-    private void openCamera() {
-        cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-        try {
-            cameraId = cameraManager.getCameraIdList()[0]; // Kamera kimliğini seçin (birinci kamera)
-            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.CAMERA}, CAMERA_REQUEST_CODE);
-                return;
-            }
-            cameraManager.openCamera(cameraId, stateCallback, null);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-    }
 
-    private void closeCamera() {
-        if (cameraDevice != null) {
-            cameraDevice.close();
-            cameraDevice = null;
-        }
-    }
 }
