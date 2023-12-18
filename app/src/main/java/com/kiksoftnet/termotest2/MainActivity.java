@@ -10,6 +10,8 @@ import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.StrictMode;
 import android.util.Log;
 import android.view.MenuInflater;
@@ -40,6 +42,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Calendar;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
     private EditText editTextCalibration;
@@ -103,6 +107,8 @@ public class MainActivity extends AppCompatActivity {
     private static String password = "kik++--**123";// the password
     private static String url = "jdbc:jtds:sqlserver://"+ip+":"+port+"/"+database; // the connection url string
     private Connection connection = null;
+    private static final String SERVER_IP = "192.168.2.245"; // Sunucu IP'si
+    private static final int SERVER_PORT = 9876; // Sunucu portu
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -159,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
 
                     editTextCalibration.setText(String.format("%.1f",calibrationValue));
                     String temp=String.format("%.1f",calibrationValue);
+                    temp=temp.replace(",", ".");
                     calibrationValue=Double.parseDouble(temp);
                 }
             }
@@ -171,6 +178,7 @@ public class MainActivity extends AppCompatActivity {
                     calibrationValue+=0.1;
                     editTextCalibration.setText(String.format("%.1f",calibrationValue));
                     String temp=String.format("%.1f",calibrationValue);
+                    temp=temp.replace(",", ".");
                     calibrationValue=Double.parseDouble(temp);
 
                 }
@@ -185,6 +193,7 @@ public class MainActivity extends AppCompatActivity {
                     histerisizPozitifValue -= 0.1;
                     editTextPozitif.setText(String.format("%.1f",histerisizPozitifValue));
                     String temp=String.format("%.1f",histerisizPozitifValue);
+                    temp=temp.replace(",", ".");
                     histerisizPozitifValue=Double.parseDouble(temp);
                 }
             }
@@ -197,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
                     histerisizPozitifValue += 0.1;
                     editTextPozitif.setText(String.format("%.1f",histerisizPozitifValue));
                     String temp=String.format("%.1f",histerisizPozitifValue);
-
+                    temp=temp.replace(",", ".");
                     histerisizPozitifValue=Double.parseDouble(temp);
 
                 }
@@ -212,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
                     histerisizNegatifValue -= 0.1;
                     editTextNegatif.setText(String.format("%.1f",histerisizNegatifValue));
                     String temp=String.format("%.1f",histerisizNegatifValue);
-
+                    temp=temp.replace(",", ".");
                     histerisizNegatifValue=Double.parseDouble(temp);
 
                 }
@@ -226,7 +235,7 @@ public class MainActivity extends AppCompatActivity {
                     histerisizNegatifValue += 0.1;
                     editTextNegatif.setText(String.format("%.1f",histerisizNegatifValue));
                     String temp=String.format("%.1f",histerisizNegatifValue);
-
+                    temp=temp.replace(",", ".");
                     histerisizNegatifValue=Double.parseDouble(temp);
 
                 }
@@ -329,7 +338,6 @@ public class MainActivity extends AppCompatActivity {
 
         startButton = findViewById(R.id.startCameraButton);
         stopButton = findViewById(R.id.stopCameraButton);
-        tcpReceiver = new TCPReceiver();
 
 
         startButton.setOnClickListener(new View.OnClickListener() {
@@ -340,13 +348,12 @@ public class MainActivity extends AppCompatActivity {
                     isCameraStarted = true;
                     startButton.setEnabled(false);
                     stopButton.setEnabled(true);
-                    //TODO THREAD KONULACAK VERİ ÇEKTİKÇE GÖRÜNTÜ DE BURADA YENİLENECEK
 
                     // TCPReceiver'ı başlat
                     //tcpReceiver.startConnection();
-                    new TCPReceiver().execute();
-                    receivedData = tcpReceiver.startAndReceiveData();
-                    handleReceivedData(receivedData);
+                    new TCPReceiver(SERVER_IP,SERVER_PORT).execute();
+                    //receivedData = tcpReceiver.startAndReceiveData();
+                    //handleReceivedData(receivedData);
                     //handleReceivedData("86882547280254843325496025411202549212541842254147025419242541988025422012542461254126000111254");
                 }
             }
@@ -382,9 +389,39 @@ public class MainActivity extends AppCompatActivity {
         });
 
         webView = findViewById(R.id.webView);
+
         configureWebView();
-        loadWebsite();
+
+       // loadWebsite();
+
+        websiteRefreshTimer = new Timer();
+        websiteRefreshTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d("KAMERA: ", "YENİLENDİ");
+
+                        loadWebsite();
+
+                        new TCPReceiver(SERVER_IP,SERVER_PORT).execute();
+
+
+
+                    }
+                });
+            }
+        }, 0, WEBSITE_REFRESH_INTERVAL);
+
+
+
+
     }
+    private final int WEBSITE_REFRESH_INTERVAL = 5000; // 5 saniyede bir yenileme aralığı
+    private Timer websiteRefreshTimer;
+    private final Handler handler = new Handler(Looper.getMainLooper());
+
     private void configureWebView() {
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true); // Gerekirse JavaScript'i etkinleştirin
@@ -392,7 +429,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadWebsite() {
-        // Görüntülemek istediğiniz web sitesini belirtin
         String websiteUrl = "http://192.168.1.222:8080/uretim/uretimg.nsf/Arge.xsp";
         webView.loadUrl(websiteUrl);
     }
@@ -401,7 +437,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    private void handleReceivedData(String receivedData) {
+    public void handleReceivedData(String receivedData) {
         Log.d("MainActivity", "Gelen Veri: " + receivedData);
 
         String roomTemp = getSubstringBetween(receivedData, "86", "254");
@@ -418,7 +454,11 @@ public class MainActivity extends AppCompatActivity {
         String segmentStatus = getSubstringBetween(receivedData, "246", "254");
         String systemOnOff = getSubstringBetween(receivedData, "126", "254");
 
-        //TODO BU STRINGLER NEREDE KULLANILACAK (SQLE GÖNDER)
+
+
+
+        saveTcpDataToMSSQL(roomTemp,setTemp,batteryLevel,comfortMode,programMode,ecoMode,minute,hour,weekday,activeProgram,lockStatus,segmentStatus, systemOnOff);
+
 
 
     }
@@ -432,6 +472,68 @@ public class MainActivity extends AppCompatActivity {
             return "";
         }
     }
+
+
+
+    private void saveTcpDataToMSSQL(String roomTemp, String setTemp, String batteryLevel, String comfortMode, String programMode, String ecoMode, String minute, String hour, String weekday, String activeProgram, String lockStatus, String segmentStatus, String systemOnOff) {
+
+        ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.INTERNET}, PackageManager.PERMISSION_GRANTED);
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+        try {
+            Class.forName(Classes);
+            connection = DriverManager.getConnection(url,username,password);
+            String insertProcedure = "{call InsertArge(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+
+            try (CallableStatement callableStatement = connection.prepareCall(insertProcedure)) {
+                callableStatement.setObject(1, null);
+                callableStatement.setObject(2, null);
+                callableStatement.setFloat(3, Float.parseFloat(setTemp)/10);
+                callableStatement.setFloat(4, Float.parseFloat(roomTemp)/10);
+                callableStatement.setObject(5, null);  // Assuming Referans_T is not available from your inputs
+                callableStatement.setObject(6, null);  // Replace with the actual function value
+                callableStatement.setInt(7, Integer.parseInt(batteryLevel));
+                callableStatement.setObject(8, null);  // Replace with the actual wifi value
+                callableStatement.setString(9, activeProgram);
+                callableStatement.setObject(10, null);  // Replace with the actual active_mod value
+                callableStatement.setInt(11, Integer.parseInt(comfortMode));
+                callableStatement.setInt(12, Integer.parseInt(programMode));
+                callableStatement.setInt(13, Integer.parseInt(ecoMode));
+                callableStatement.setInt(14, Integer.parseInt(minute));
+                callableStatement.setInt(15, Integer.parseInt(hour));
+                callableStatement.setInt(16, Integer.parseInt(weekday));
+                callableStatement.setInt(17, Integer.parseInt(lockStatus));
+                callableStatement.setInt(18, Integer.parseInt(segmentStatus));
+                callableStatement.setInt(19, Integer.parseInt(systemOnOff));
+
+                callableStatement.execute();
+                // Prosedür başarıyla çağrıldı
+                Toast.makeText(this, "VERİLER GÖNDERİLDİ", Toast.LENGTH_SHORT);
+            } catch (SQLException e) {
+                System.out.println("SQL Server Hatası");
+                e.printStackTrace();
+            }
+        } catch (SQLException e) {
+            System.out.println("SQL Server Bağlanılamadı");
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                connection = null;
+            }
+        }
+    }
+
+
+
+
+
     private void saveDataToMSSQL(float calibrationValue, float pozitifValue, float negatifValue, String heatCoolValue, String functionValue, String productValue, String islemciValue, String tipValue) {
 
         ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.INTERNET}, PackageManager.PERMISSION_GRANTED);
@@ -557,6 +659,15 @@ public class MainActivity extends AppCompatActivity {
         });
 
         popupMenu.show();
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Uygulama kapatıldığında timer'ı durdur
+        if (websiteRefreshTimer != null) {
+            websiteRefreshTimer.cancel();
+            websiteRefreshTimer.purge();
+        }
     }
 
 

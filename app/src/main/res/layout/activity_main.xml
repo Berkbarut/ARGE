@@ -330,11 +330,10 @@
 
     <WebView
         android:id="@+id/webView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_gravity="top|end"
+        android:layout_width="393dp"
+        android:layout_height="461dp"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="55dp"
+        android:layout_marginEnd="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -347,7 +346,7 @@
         android:layout_marginEnd="75dp"
         android:text="Başlat"
         app:layout_constraintEnd_toStartOf="@+id/stopCameraButton"
-        app:layout_constraintTop_toBottomOf="@+id/textureView" />
+        app:layout_constraintTop_toBottomOf="@+id/webView" />
 
     <Button
         android:id="@+id/stopCameraButton"
@@ -357,7 +356,7 @@
         android:layout_marginEnd="85dp"
         android:text="Durdur"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textureView" />
+        app:layout_constraintTop_toBottomOf="@+id/webView" />
 
     <Button
         android:id="@+id/buttonSave"
