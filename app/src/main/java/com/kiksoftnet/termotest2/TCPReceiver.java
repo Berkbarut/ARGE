@@ -19,6 +19,7 @@ public class TCPReceiver extends AsyncTask<Void, Void, String> {
     private BufferedReader in;
     private String serverIP;
     private int serverPort;
+    MainActivity mainActivity;
 
     private List<String> receivedDataList;
     // Bağlantıyı başlat
@@ -32,10 +33,10 @@ public class TCPReceiver extends AsyncTask<Void, Void, String> {
 //        }
 //    }
 
-    // Bağlantıyı durdur
-    public TCPReceiver(String serverIP, int serverPort) {
+    public TCPReceiver(String serverIP, int serverPort, MainActivity mainActivity ) {
         this.serverIP = serverIP;
         this.serverPort = serverPort;
+        this.mainActivity = mainActivity;
     }
 
     public void stopConnection() {
@@ -61,8 +62,6 @@ public class TCPReceiver extends AsyncTask<Void, Void, String> {
 
 
 
-            out.print('m');
-            out.flush();
 
 //            while(!isRecieved){
 //                String receivedData = in.readLine();
@@ -77,15 +76,32 @@ public class TCPReceiver extends AsyncTask<Void, Void, String> {
 //
 //            }
             List<String> receivedDataList = new ArrayList<>();
-            while (!isCancelled()) {
+            String receivedData="";
+            while (true) {
+                out.print('m');
+                out.flush();
                 // Sunucudan gelen veriyi al
                 if (in.ready()) {
                     // Sunucudan gelen veriyi al
-                    String receivedData = in.readLine();
+                    while(true){
+                        receivedData += in.readLine();
+                        if(receivedData.contains("254")){
+                            break;
+                        }
+                    }
                     Log.d("TcpReceiver", "Alınan Veri: " + receivedData);
+
+                    if(receivedData!=null){
+                        mainActivity.handleReceivedData(receivedData);
+                        receivedData="";
+                        //in.close();
+
+                    }
+
 
                     // Cevapları listeye ekle
                     receivedDataList.add(receivedData);
+
                 }
                 // 10 saniye beklet
                 try {
@@ -104,11 +120,11 @@ public class TCPReceiver extends AsyncTask<Void, Void, String> {
             //Log.d("TcpReceiver", "Alınan Veri: " + receivedData);
 
             // Bağlantıları kapat
-            in.close();
-            out.close();
-            socket.close();
+//            in.close();
+//            out.close();
+//            socket.close();
 
-            return null;
+            //return null;
         } catch (IOException e) {
             Log.e("TcpReceiver", "Hata: " + e.getMessage());
             return null;
@@ -119,8 +135,9 @@ public class TCPReceiver extends AsyncTask<Void, Void, String> {
         if (result != null) {
             // MainActivity'deki bir metodu çağırarak alınan veriyi kullanabilirsiniz
             if(!result.equals("OK")){
-                MainActivity mainActivityInstance = new MainActivity();
-                mainActivityInstance.handleReceivedData(result);
+//
+//                MainActivity mainActivityInstance = new MainActivity();
+//                mainActivityInstance.handleReceivedData(result);
             }
         }
 

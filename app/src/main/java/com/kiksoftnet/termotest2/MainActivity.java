@@ -99,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
     private TCPReceiver tcpReceiver;
     private String receivedData;
 
-    private static String ip = "192.168.1.2";// this is the host ip that your data base exists on you can use 10.0.2.2 for local host                                                    found on your pc. use if config for windows to find the ip if the database exists on                                                    your pc
+    private static String ip = "192.168.1.223";// this is the host ip that your data base exists on you can use 10.0.2.2 for local host                                                    found on your pc. use if config for windows to find the ip if the database exists on                                                    your pc
     private static String port = "1433";// the port sql server runs on
     private static String Classes = "net.sourceforge.jtds.jdbc.Driver";// the driver that is required for this connection use                                                                           "org.postgresql.Driver" for connecting to postgresql
     private static String database = "Arge";// the data base name
@@ -346,15 +346,29 @@ public class MainActivity extends AppCompatActivity {
                 if (!isCameraStarted) {
 
                     isCameraStarted = true;
-                    startButton.setEnabled(false);
-                    stopButton.setEnabled(true);
+                    startRefreshTimer();
 
-                    // TCPReceiver'ı başlat
-                    //tcpReceiver.startConnection();
-                    new TCPReceiver(SERVER_IP,SERVER_PORT).execute();
-                    //receivedData = tcpReceiver.startAndReceiveData();
-                    //handleReceivedData(receivedData);
-                    //handleReceivedData("86882547280254843325496025411202549212541842254147025419242541988025422012542461254126000111254");
+//
+//                    websiteRefreshTimer = new Timer();
+//                    websiteRefreshTimer.scheduleAtFixedRate(new TimerTask() {
+//                        @Override
+//                        public void run() {
+//                            handler.post(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    Log.d("KAMERA: ", "YENİLENDİ");
+//
+//                                    loadWebsite();
+//
+//                                    new TCPReceiver(SERVER_IP,SERVER_PORT,MainActivity.this).execute();
+//
+//
+//
+//                                }
+//                            });
+//                        }
+//                    }, 0, WEBSITE_REFRESH_INTERVAL);
+
                 }
             }
         });
@@ -364,14 +378,14 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (isCameraStarted) {
                     isCameraStarted = false;
-                    startButton.setEnabled(true);
-                    stopButton.setEnabled(false);
 
                     // TCPReceiver'ı durdur
-                    tcpReceiver.stopConnection();
+                    stopRefreshTimer();
                 }
             }
         });
+
+
 
 
         Button buttonSave = findViewById(R.id.buttonSave);
@@ -393,32 +407,76 @@ public class MainActivity extends AppCompatActivity {
         configureWebView();
 
        // loadWebsite();
-
-        websiteRefreshTimer = new Timer();
-        websiteRefreshTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.d("KAMERA: ", "YENİLENDİ");
-
-                        loadWebsite();
-
-                        new TCPReceiver(SERVER_IP,SERVER_PORT).execute();
-
-
-
-                    }
-                });
-            }
-        }, 0, WEBSITE_REFRESH_INTERVAL);
+//
+//        websiteRefreshTimer = new Timer();
+//        websiteRefreshTimer.scheduleAtFixedRate(new TimerTask() {
+//            @Override
+//            public void run() {
+//                handler.post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        Log.d("KAMERA: ", "YENİLENDİ");
+//
+//                        loadWebsite();
+//
+//                        new TCPReceiver(SERVER_IP,SERVER_PORT,MainActivity.this).execute();
+//
+//
+//
+//                    }
+//                });
+//            }
+//        }, 0, WEBSITE_REFRESH_INTERVAL);
 
 
 
 
     }
-    private final int WEBSITE_REFRESH_INTERVAL = 5000; // 5 saniyede bir yenileme aralığı
+    private void startRefreshTimer() {
+        if(!editTextAralik.getText().toString().equals("")){
+            WEBSITE_REFRESH_INTERVAL = Integer.parseInt(editTextAralik.getText().toString());
+            WEBSITE_REFRESH_INTERVAL=WEBSITE_REFRESH_INTERVAL*1000;
+            editTextAralik.setEnabled(false);
+            if(WEBSITE_REFRESH_INTERVAL > 0){
+                websiteRefreshTimer = new Timer();
+                websiteRefreshTimer.scheduleAtFixedRate(new TimerTask() {
+                    @Override
+                    public void run() {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Log.d("KAMERA: ", "YENİLENDİ");
+
+                                loadWebsite();
+
+                                new TCPReceiver(SERVER_IP, SERVER_PORT, MainActivity.this).execute();
+                            }
+                        });
+                    }
+                }, 0, WEBSITE_REFRESH_INTERVAL);
+
+                startButton.setEnabled(false);
+                stopButton.setEnabled(true);
+            }
+        }
+        else
+            Toast.makeText(this, "Aralık değeri girin", Toast.LENGTH_SHORT).show();
+
+    }
+
+    // Timer'ı durduran metod
+    private void stopRefreshTimer() {
+        if (websiteRefreshTimer != null) {
+            websiteRefreshTimer.cancel();
+            websiteRefreshTimer.purge();
+            websiteRefreshTimer = null;
+
+            startButton.setEnabled(true);
+            stopButton.setEnabled(false);
+            editTextAralik.setEnabled(true);
+        }
+    }
+    public int WEBSITE_REFRESH_INTERVAL = 0; // 5 saniyede bir yenileme aralığı
     private Timer websiteRefreshTimer;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
@@ -437,8 +495,10 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    public void handleReceivedData(String receivedData) {
-        Log.d("MainActivity", "Gelen Veri: " + receivedData);
+    public void handleReceivedData(String receivedDataString) {
+        Log.d("MainActivity", "Gelen Veri: " + receivedDataString);
+
+        StringBuilder receivedData = new StringBuilder(receivedDataString);
 
         String roomTemp = getSubstringBetween(receivedData, "86", "254");
         String setTemp = getSubstringBetween(receivedData, "72", "254");
@@ -462,12 +522,25 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-    private String getSubstringBetween(String original, String start, String end) {
+//    private String getSubstringBetween(String original, String start, String end) {
+//        int startIndex = original.indexOf(start);
+//        int endIndex = original.indexOf(end, startIndex + start.length());
+//
+//        if (startIndex != -1 && endIndex != -1) {
+//            return original.substring(startIndex + start.length(), endIndex);
+//        } else {
+//            return "";
+//        }
+//    }
+
+    private String getSubstringBetween(StringBuilder original, String start, String end) {
         int startIndex = original.indexOf(start);
         int endIndex = original.indexOf(end, startIndex + start.length());
 
         if (startIndex != -1 && endIndex != -1) {
-            return original.substring(startIndex + start.length(), endIndex);
+            String result = original.substring(startIndex + start.length(), endIndex);
+            original.delete(startIndex, endIndex + end.length()); // Alt dizgiyi temizle
+            return result;
         } else {
             return "";
         }
@@ -476,6 +549,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void saveTcpDataToMSSQL(String roomTemp, String setTemp, String batteryLevel, String comfortMode, String programMode, String ecoMode, String minute, String hour, String weekday, String activeProgram, String lockStatus, String segmentStatus, String systemOnOff) {
+
 
         ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.INTERNET}, PackageManager.PERMISSION_GRANTED);
 
@@ -491,12 +565,12 @@ public class MainActivity extends AppCompatActivity {
                 callableStatement.setObject(2, null);
                 callableStatement.setFloat(3, Float.parseFloat(setTemp)/10);
                 callableStatement.setFloat(4, Float.parseFloat(roomTemp)/10);
-                callableStatement.setObject(5, null);  // Assuming Referans_T is not available from your inputs
-                callableStatement.setObject(6, null);  // Replace with the actual function value
+                callableStatement.setObject(5, null);
+                callableStatement.setObject(6, null);
                 callableStatement.setInt(7, Integer.parseInt(batteryLevel));
-                callableStatement.setObject(8, null);  // Replace with the actual wifi value
+                callableStatement.setObject(8, null);
                 callableStatement.setString(9, activeProgram);
-                callableStatement.setObject(10, null);  // Replace with the actual active_mod value
+                callableStatement.setObject(10, null);
                 callableStatement.setInt(11, Integer.parseInt(comfortMode));
                 callableStatement.setInt(12, Integer.parseInt(programMode));
                 callableStatement.setInt(13, Integer.parseInt(ecoMode));
@@ -509,7 +583,7 @@ public class MainActivity extends AppCompatActivity {
 
                 callableStatement.execute();
                 // Prosedür başarıyla çağrıldı
-                Toast.makeText(this, "VERİLER GÖNDERİLDİ", Toast.LENGTH_SHORT);
+                //Toast.makeText(this, "VERİLER GÖNDERİLDİ", Toast.LENGTH_SHORT).show();
             } catch (SQLException e) {
                 System.out.println("SQL Server Hatası");
                 e.printStackTrace();
