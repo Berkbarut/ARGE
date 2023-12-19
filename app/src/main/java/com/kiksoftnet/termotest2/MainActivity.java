@@ -3,6 +3,7 @@ package com.kiksoftnet.termotest2;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -13,6 +14,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.StrictMode;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -42,6 +44,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Calendar;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -79,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Button createChartButton;
     private Button reportButton;
+    private TextView timerTextView;
 
     private TextureView textureView;
     private Button startButton;
@@ -109,6 +113,9 @@ public class MainActivity extends AppCompatActivity {
     private Connection connection = null;
     private static final String SERVER_IP = "192.168.2.245"; // Sunucu IP'si
     private static final int SERVER_PORT = 9876; // Sunucu portu
+    private long startTime = 0;
+    private boolean isTimerRunning = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -157,6 +164,9 @@ public class MainActivity extends AppCompatActivity {
         editTextAralik = findViewById(R.id.editTextAralik);
 
         editTextCalibration.setText(String.valueOf(calibrationValue));
+
+        timerTextView = findViewById(R.id.timerTextView);
+
         buttonDecreaseCalibration.setOnClickListener(new View.OnClickListener() { //Kalibrasyon kısmında değer girme
             @Override
             public void onClick(View v) {
@@ -346,6 +356,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!isCameraStarted) {
 
                     isCameraStarted = true;
+                    startTimer();
                     startRefreshTimer();
 
 //
@@ -378,6 +389,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (isCameraStarted) {
                     isCameraStarted = false;
+                    stopTimer();
 
                     // TCPReceiver'ı durdur
                     stopRefreshTimer();
@@ -430,6 +442,22 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
+
+
+
+
+
+        Button buttonReset = findViewById(R.id.buttonReset);
+        buttonReset.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Uygulamayı yeniden başlatmak için Intent kullanabilirsiniz
+                Intent intent = getIntent();
+                finish();
+                startActivity(intent);
+            }
+        });
 
     }
     private void startRefreshTimer() {
@@ -734,6 +762,31 @@ public class MainActivity extends AppCompatActivity {
 
         popupMenu.show();
     }
+    private void startTimer() {
+        if (!isTimerRunning) {
+            startTime = SystemClock.elapsedRealtime();
+            updateTimerText(0);
+            isTimerRunning = true;
+            startButton.setEnabled(false);
+        }
+    }
+
+    private void stopTimer() {
+        if (isTimerRunning) {
+            isTimerRunning = false;
+            startButton.setEnabled(true);
+        }
+    }
+
+    private void updateTimerText(long elapsedTime) {
+        long minutes = elapsedTime / 60000;
+        long seconds = (elapsedTime % 60000) / 1000;
+
+        String timerText = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds);
+        timerTextView.setText(timerText);
+    }
+
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
