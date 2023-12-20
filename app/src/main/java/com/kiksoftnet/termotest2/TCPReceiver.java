@@ -94,6 +94,7 @@ public class TCPReceiver extends AsyncTask<Void, Void, String> {
                     if(receivedData!=null){
                         mainActivity.handleReceivedData(receivedData);
                         receivedData="";
+
                         //in.close();
 
                     }
@@ -105,7 +106,7 @@ public class TCPReceiver extends AsyncTask<Void, Void, String> {
                 }
                 // 10 saniye beklet
                 try {
-                    Thread.sleep(10000);
+                    Thread.sleep(mainActivity.WEBSITE_REFRESH_INTERVAL);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

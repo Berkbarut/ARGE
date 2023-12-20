@@ -10,6 +10,8 @@ import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -25,6 +27,7 @@ import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Chronometer;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.PopupMenu;
@@ -38,12 +41,25 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
+import com.hoho.android.usbserial.driver.UsbSerialDriver;
+import com.hoho.android.usbserial.driver.UsbSerialProber;
+
+import net.sourceforge.jtds.jdbc.DateTime;
+
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -74,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText editTextIslemci;
     private Spinner spinnerTip;
     private WebView webView;
+    private WebView webView2;
 
     private TextView textViewStartTime;
     private TextView textViewEndTime;
@@ -82,7 +99,10 @@ public class MainActivity extends AppCompatActivity {
 
     private Button createChartButton;
     private Button reportButton;
-    private TextView timerTextView;
+
+    private Chronometer chronometer;
+    private boolean isRunning = false;
+    private long pauseOffset = 0;
 
     private TextureView textureView;
     private Button startButton;
@@ -165,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
 
         editTextCalibration.setText(String.valueOf(calibrationValue));
 
-        timerTextView = findViewById(R.id.timerTextView);
+        chronometer = findViewById(R.id.chronometer);
 
         buttonDecreaseCalibration.setOnClickListener(new View.OnClickListener() { //Kalibrasyon kısmında değer girme
             @Override
@@ -356,7 +376,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!isCameraStarted) {
 
                     isCameraStarted = true;
-                    startTimer();
+                    startChronometer();
                     startRefreshTimer();
 
 //
@@ -389,9 +409,9 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (isCameraStarted) {
                     isCameraStarted = false;
-                    stopTimer();
 
                     // TCPReceiver'ı durdur
+                    pauseChronometer();
                     stopRefreshTimer();
                 }
             }
@@ -410,11 +430,12 @@ public class MainActivity extends AppCompatActivity {
                 // Kullanıcının girdiği verileri al
 
                 // Verileri MSSQL veritabanına kaydet
-                saveDataToMSSQL((float)calibrationValue,(float) histerisizPozitifValue,(float)histerisizNegatifValue,heatCoolString,fonksiyonString,urunString,islemciString,tipString);
+                saveDataToMSSQL((float)calibrationValue,(float) histerisizPozitifValue,(float)histerisizNegatifValue,heatCoolString,fonksiyonString,urunString,islemciString,tipString,baslangicDate,bitisDate,Integer.parseInt(editTextAralik.getText().toString()));
             }
         });
 
         webView = findViewById(R.id.webView);
+        webView2 = findViewById(R.id.webView2);
 
         configureWebView();
 
@@ -460,6 +481,26 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
+
+    private void startChronometer() {
+        if (!isRunning) {
+            chronometer.setBase(SystemClock.elapsedRealtime() - pauseOffset);
+            chronometer.start();
+            isRunning = true;
+        }
+    }
+
+    private void pauseChronometer() {
+        if (isRunning) {
+            chronometer.stop();
+            pauseOffset = SystemClock.elapsedRealtime() - chronometer.getBase();
+            isRunning = false;
+        }
+    }
+
+
+
+
     private void startRefreshTimer() {
         if(!editTextAralik.getText().toString().equals("")){
             WEBSITE_REFRESH_INTERVAL = Integer.parseInt(editTextAralik.getText().toString());
@@ -474,6 +515,10 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void run() {
                                 Log.d("KAMERA: ", "YENİLENDİ");
+
+
+                                String serialdata = readSerialData();
+                                Log.d("SERİ DATA: ",serialdata);
 
                                 loadWebsite();
 
@@ -510,13 +555,17 @@ public class MainActivity extends AppCompatActivity {
 
     private void configureWebView() {
         WebSettings webSettings = webView.getSettings();
-        webSettings.setJavaScriptEnabled(true); // Gerekirse JavaScript'i etkinleştirin
+        webSettings.setJavaScriptEnabled(true);
+        WebSettings webSettings2 = webView2.getSettings();
+        webSettings2.setJavaScriptEnabled(true);
         // Diğer WebView ayarlarını burada konfigure edebilirsiniz
     }
 
     private void loadWebsite() {
         String websiteUrl = "http://192.168.1.222:8080/uretim/uretimg.nsf/Arge.xsp";
         webView.loadUrl(websiteUrl);
+        String websiteUrl2 = "http://192.168.1.222:8080/uretim/uretimg.nsf/Arge_Grafik.xsp";
+        webView2.loadUrl(websiteUrl2);
     }
 
 
@@ -576,6 +625,41 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+    UsbDevice device;
+    KabloluSeriBaglanti kabloluSeriBaglanti = new KabloluSeriBaglanti(this,device);
+    public String readSerialData() {
+        kabloluTestBaglan();
+        String seriDeger = kabloluSeriBaglanti.read();
+        return seriDeger;
+    }
+
+    public void kabloluTestBaglan() {
+        try {
+            UsbManager usbManager;
+            usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+            HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
+            Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
+            UsbSerialProber usbDefaultProber = UsbSerialProber.getDefaultProber();
+            UsbSerialProber usbCustomProber = CustomProber.getCustomProber();
+            while (deviceIterator.hasNext()) {
+                UsbDevice device = deviceIterator.next();
+                UsbSerialDriver driver = usbDefaultProber.probeDevice(device);
+                if (driver == null) {
+                    driver = usbCustomProber.probeDevice(device);
+                    //return;
+                }
+                if (driver != null) {
+                    kabloluSeriBaglanti = new KabloluSeriBaglanti(this, device);
+                    return;
+                }
+            }
+        } catch (Exception ex) {
+        }
+    }
+
+
+
+
     private void saveTcpDataToMSSQL(String roomTemp, String setTemp, String batteryLevel, String comfortMode, String programMode, String ecoMode, String minute, String hour, String weekday, String activeProgram, String lockStatus, String segmentStatus, String systemOnOff) {
 
 
@@ -583,13 +667,29 @@ public class MainActivity extends AppCompatActivity {
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
+
+
+
+
+
         try {
             Class.forName(Classes);
             connection = DriverManager.getConnection(url,username,password);
-            String insertProcedure = "{call InsertArge(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+            String insertProcedure = "{call InsertArge(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+
+
+
+            try (PreparedStatement statement1 = connection.prepareStatement("SELECT TOP 1 ID FROM TBL_TEST ORDER BY ID DESC");
+                 ResultSet resultSet1 = statement1.executeQuery()) {
+                if (resultSet1.next()) {
+                    int lastPrimaryKey1 = resultSet1.getInt("ID");
+                    insertedID=lastPrimaryKey1;
+                }
+            }
+
 
             try (CallableStatement callableStatement = connection.prepareCall(insertProcedure)) {
-                callableStatement.setObject(1, null);
+                callableStatement.setObject(1,null );
                 callableStatement.setObject(2, null);
                 callableStatement.setFloat(3, Float.parseFloat(setTemp)/10);
                 callableStatement.setFloat(4, Float.parseFloat(roomTemp)/10);
@@ -608,6 +708,7 @@ public class MainActivity extends AppCompatActivity {
                 callableStatement.setInt(17, Integer.parseInt(lockStatus));
                 callableStatement.setInt(18, Integer.parseInt(segmentStatus));
                 callableStatement.setInt(19, Integer.parseInt(systemOnOff));
+                callableStatement.setInt(20, insertedID);
 
                 callableStatement.execute();
                 // Prosedür başarıyla çağrıldı
@@ -635,19 +736,38 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+    private int insertedID;
 
-    private void saveDataToMSSQL(float calibrationValue, float pozitifValue, float negatifValue, String heatCoolValue, String functionValue, String productValue, String islemciValue, String tipValue) {
+    private void saveDataToMSSQL(float calibrationValue, float pozitifValue, float negatifValue, String heatCoolValue, String functionValue, String productValue, String islemciValue, String tipValue, Date baslamaZamani, Date bitisZamani, int aralik) {
 
         ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.INTERNET}, PackageManager.PERMISSION_GRANTED);
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
         try {
-            Class.forName(Classes);
-            connection = DriverManager.getConnection(url,username,password);
-            String insertProcedure = "{call InsertData(?, ?, ?, ?, ?, ?, ?, ?)}";
+            try {
+                Class.forName(Classes);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            try {
+                connection = DriverManager.getConnection(url,username,password);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            String insertProcedure = "{call InsertData(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
-            try (CallableStatement callableStatement = connection.prepareCall(insertProcedure)) {
+            java.util.Date utilDateBaslangic = baslamaZamani;
+            java.sql.Date sqlDateBaslangic = new java.sql.Date(utilDateBaslangic.getTime());
+
+            java.util.Date utilDateBitis = bitisZamani;
+            java.sql.Date sqlDateBitis = new java.sql.Date(utilDateBitis.getTime());
+
+
+
+
+
+            try (CallableStatement callableStatement = connection.prepareCall(insertProcedure /*Statement.RETURN_GENERATED_KEYS*/)) {
                 callableStatement.setFloat(1, calibrationValue);
                 callableStatement.setFloat(2, pozitifValue);
                 callableStatement.setFloat(3, negatifValue);
@@ -656,19 +776,24 @@ public class MainActivity extends AppCompatActivity {
                 callableStatement.setString(6, productValue);
                 callableStatement.setString(7, islemciValue);
                 callableStatement.setString(8, tipValue);
+                callableStatement.setDate(9, sqlDateBaslangic);
+                callableStatement.setDate(10, sqlDateBitis);
+                callableStatement.setInt(11, aralik);
+                //callableStatement.registerOutParameter(12, Types.INTEGER);
 
                 callableStatement.execute();
+
+                try (ResultSet generatedKeys = callableStatement.getGeneratedKeys()) {
+                    while (generatedKeys.next()) {
+                        insertedID = generatedKeys.getInt(1);
+                    }
+                }
                 // Prosedür başarıyla çağrıldı
                 Toast.makeText(this, "VERİLER GÖNDERİLDİ", Toast.LENGTH_SHORT);
             } catch (SQLException e) {
                 System.out.println("SQL Server Hatası");
                 e.printStackTrace();
             }
-        } catch (SQLException e) {
-            System.out.println("SQL Server Bağlanılamadı");
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
         } finally {
             try {
                 if (connection != null) {
@@ -680,6 +805,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private Date baslangicDate;
+    private Date bitisDate;
     private void showDateTimePicker(final boolean isStartTime) {// Zaman seçmek için fonksiyon
         Calendar calendar = Calendar.getInstance();
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
@@ -698,6 +825,7 @@ public class MainActivity extends AppCompatActivity {
                     TextView textViewEndTime = findViewById(R.id.textViewEndTime);
                     textViewEndTime.setText("Bitiş Zamanı: " + selectedDate);
                 }
+
             }
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
 
@@ -708,10 +836,30 @@ public class MainActivity extends AppCompatActivity {
                 if (isStartTime) {
                     TextView textViewStartTime = findViewById(R.id.textViewStartTime);
                     textViewStartTime.append(" Saat: " + selectedTime);
+
+                    try {
+                        String tempbaslangic=textViewStartTime.getText().toString().replace("Başlangıç Zamanı: ", "");
+                        tempbaslangic=tempbaslangic.replace("Saat: ", "");
+
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+                        baslangicDate = sdf.parse(tempbaslangic);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+
                 } else {
 
                     TextView textViewEndTime = findViewById(R.id.textViewEndTime);
                     textViewEndTime.append(" Saat: " + selectedTime);
+                    try {
+                        String tempbitis=textViewEndTime.getText().toString().replace("Bitiş Zamanı: ", "");
+                        tempbitis=tempbitis.replace("Saat: ", "");
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+                        bitisDate = sdf.parse(tempbitis);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+
                 }
             }
         }, hour, minute, true);
@@ -762,29 +910,7 @@ public class MainActivity extends AppCompatActivity {
 
         popupMenu.show();
     }
-    private void startTimer() {
-        if (!isTimerRunning) {
-            startTime = SystemClock.elapsedRealtime();
-            updateTimerText(0);
-            isTimerRunning = true;
-            startButton.setEnabled(false);
-        }
-    }
 
-    private void stopTimer() {
-        if (isTimerRunning) {
-            isTimerRunning = false;
-            startButton.setEnabled(true);
-        }
-    }
-
-    private void updateTimerText(long elapsedTime) {
-        long minutes = elapsedTime / 60000;
-        long seconds = (elapsedTime % 60000) / 1000;
-
-        String timerText = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds);
-        timerTextView.setText(timerText);
-    }
 
 
     @Override

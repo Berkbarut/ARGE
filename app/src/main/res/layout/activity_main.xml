@@ -19,21 +19,24 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textViewAralik" />
 
-    <TextView
-        android:id="@+id/timerTextView"
+
+    <Chronometer
+        android:id="@+id/chronometer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="241dp"
-        android:layout_marginEnd="51dp"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="992dp"
+        android:layout_marginEnd="132dp"
         android:background="#F5F5F5"
         android:elevation="2dp"
+        android:format="%s"
         android:padding="8dp"
         android:text="00:00"
         android:textColor="#00668B"
-        android:textSize="20sp"
+        android:textSize="30sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toStartOf="@+id/webView"
-        app:layout_constraintTop_toBottomOf="@+id/buttonIncreaseNegatif" />
+        app:layout_constraintEnd_toStartOf="@+id/startCameraButton"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/textViewAralik"
@@ -485,39 +488,48 @@
         android:id="@+id/webView"
         android:layout_width="640dp"
         android:layout_height="480dp"
-        android:layout_marginTop="288dp"
-        android:layout_marginEnd="64dp"
+        android:layout_marginTop="484dp"
+        android:layout_marginEnd="60dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/stopCameraButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="272dp"
-        android:layout_marginBottom="240dp"
-        android:text="Durdur"
-        android:textColor="@android:color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/startCameraButton" />
+    <WebView
+        android:id="@+id/webView2"
+        android:layout_width="640dp"
+        android:layout_height="480dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="60dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/startCameraButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="972dp"
-        android:layout_marginBottom="240dp"
+        android:layout_marginStart="976dp"
+        android:layout_marginTop="32dp"
         android:text="Başlat"
         android:textColor="@android:color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/buttonSave" />
+        app:layout_constraintStart_toEndOf="@+id/buttonSave"
+        app:layout_constraintTop_toBottomOf="@+id/webView" />
+
+    <Button
+        android:id="@+id/stopCameraButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="264dp"
+        android:layout_marginTop="32dp"
+        android:text="Durdur"
+        android:textColor="@android:color/white"
+        app:layout_constraintStart_toEndOf="@+id/startCameraButton"
+        app:layout_constraintTop_toBottomOf="@+id/webView" />
 
     <ImageView
         android:id="@+id/imageViewLogo"
-        android:layout_width="417dp"
-        android:layout_height="94dp"
-        android:layout_marginTop="51dp"
-        android:layout_marginEnd="60dp"
+        android:layout_width="220dp"
+        android:layout_height="103dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="1684dp"
         android:src="@drawable/kiklogo"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
