@@ -41,6 +41,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
+import com.hoho.android.usbserial.driver.SerialTerminalFragment;
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 
@@ -516,9 +517,9 @@ public class MainActivity extends AppCompatActivity {
                             public void run() {
                                 Log.d("KAMERA: ", "YENİLENDİ");
 
+                                //readSerialData();
 
-                                String serialdata = readSerialData();
-                                Log.d("SERİ DATA: ",serialdata);
+                                //Log.d("SERİ DATA: ",tempGelen);
 
                                 loadWebsite();
 
@@ -590,11 +591,13 @@ public class MainActivity extends AppCompatActivity {
         String lockStatus = getSubstringBetween(receivedData, "220", "254");
         String segmentStatus = getSubstringBetween(receivedData, "246", "254");
         String systemOnOff = getSubstringBetween(receivedData, "126", "254");
+        String wifiStatus = getSubstringBetween(receivedData, "134", "254");
+        String detectStatus = getSubstringBetween(receivedData, "154", "254");
 
 
 
 
-        saveTcpDataToMSSQL(roomTemp,setTemp,batteryLevel,comfortMode,programMode,ecoMode,minute,hour,weekday,activeProgram,lockStatus,segmentStatus, systemOnOff);
+        saveTcpDataToMSSQL(roomTemp,setTemp,batteryLevel,comfortMode,programMode,ecoMode,minute,hour,weekday,activeProgram,lockStatus,segmentStatus, systemOnOff, wifiStatus,detectStatus);
 
 
 
@@ -625,12 +628,21 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
+
     UsbDevice device;
     KabloluSeriBaglanti kabloluSeriBaglanti = new KabloluSeriBaglanti(this,device);
-    public String readSerialData() {
+    //SerialTerminalFragment serialTerminalFragment = new SerialTerminalFragment(this,1,device);
+    String tempGelen;
+    public void showReceivedData(String data){
+    tempGelen=data;
+    }
+
+    public void readSerialData() {
         kabloluTestBaglan();
-        String seriDeger = kabloluSeriBaglanti.read();
-        return seriDeger;
+        //serialTerminalFragment.read();
+        //String seriDeger = kabloluSeriBaglanti.read();
+        //return seriDeger;
     }
 
     public void kabloluTestBaglan() {
@@ -660,7 +672,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    private void saveTcpDataToMSSQL(String roomTemp, String setTemp, String batteryLevel, String comfortMode, String programMode, String ecoMode, String minute, String hour, String weekday, String activeProgram, String lockStatus, String segmentStatus, String systemOnOff) {
+    private void saveTcpDataToMSSQL(String roomTemp, String setTemp, String batteryLevel, String comfortMode, String programMode, String ecoMode, String minute, String hour, String weekday, String activeProgram, String lockStatus, String segmentStatus, String systemOnOff, String wifiStatus, String detectStatus) {
 
 
         ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.INTERNET}, PackageManager.PERMISSION_GRANTED);
@@ -675,7 +687,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             Class.forName(Classes);
             connection = DriverManager.getConnection(url,username,password);
-            String insertProcedure = "{call InsertArge(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+            String insertProcedure = "{call InsertArge(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
 
 
@@ -696,7 +708,7 @@ public class MainActivity extends AppCompatActivity {
                 callableStatement.setObject(5, null);
                 callableStatement.setObject(6, null);
                 callableStatement.setInt(7, Integer.parseInt(batteryLevel));
-                callableStatement.setObject(8, null);
+                callableStatement.setInt(8, Integer.parseInt(wifiStatus));
                 callableStatement.setString(9, activeProgram);
                 callableStatement.setObject(10, null);
                 callableStatement.setInt(11, Integer.parseInt(comfortMode));
@@ -709,6 +721,8 @@ public class MainActivity extends AppCompatActivity {
                 callableStatement.setInt(18, Integer.parseInt(segmentStatus));
                 callableStatement.setInt(19, Integer.parseInt(systemOnOff));
                 callableStatement.setInt(20, insertedID);
+                callableStatement.setInt(21, Integer.parseInt(detectStatus));
+
 
                 callableStatement.execute();
                 // Prosedür başarıyla çağrıldı

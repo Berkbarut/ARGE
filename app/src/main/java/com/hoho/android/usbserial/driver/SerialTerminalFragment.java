@@ -9,6 +9,7 @@ import android.hardware.usb.UsbManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.SpannableStringBuilder;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -184,7 +185,7 @@ public class SerialTerminalFragment  implements SerialInputOutputManager.Listene
         }
     }
 
-    private void read() {
+    public void read() {
         try {
             if (!connected) {
                 Toast.makeText(parentActivity, "not connected", Toast.LENGTH_SHORT).show();
@@ -205,7 +206,7 @@ public class SerialTerminalFragment  implements SerialInputOutputManager.Listene
         }
     }
 
-    private void receive(byte[] data) {
+    public void receive(byte[] data) {
         try {
 
             SpannableStringBuilder spn = new SpannableStringBuilder();
@@ -217,8 +218,10 @@ public class SerialTerminalFragment  implements SerialInputOutputManager.Listene
 
             if (gelen.indexOf("T",gelen.indexOf("T")+1) != -1) {
                 gelentmp = gelen.substring(gelen.indexOf("T") + 1);
-                // gelentmp=gelentmp.substring(0,gelen.indexOf("T"))
-                // parentActivity.
+                gelentmp=gelentmp.substring(0,gelen.indexOf("T"));
+                Log.d("RECIVE GELEN: ",gelentmp);
+                parentActivity.showReceivedData(gelentmp);
+                // TODO MAINDEN ÇEK parentActivity.
                 //gelen = "";
             }
 
@@ -228,6 +231,7 @@ public class SerialTerminalFragment  implements SerialInputOutputManager.Listene
         //TextView uyariView = (TextView) parentActivity.findViewById(R.id.islemUyari);
         //uyariView.setText(receiveText.getText());
     }
+
 
     void status(String str) {
         try {
