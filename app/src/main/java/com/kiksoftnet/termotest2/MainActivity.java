@@ -5,7 +5,7 @@ import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.hardware.camera2.CameraAccessException;
+import android.graphics.Color;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
@@ -45,16 +45,12 @@ import com.hoho.android.usbserial.driver.SerialTerminalFragment;
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 
-import net.sourceforge.jtds.jdbc.DateTime;
-
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Types;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -123,6 +119,8 @@ public class MainActivity extends AppCompatActivity {
     String tipString="Kablolu";
     private TCPReceiver tcpReceiver;
     private String receivedData;
+    private TextView olculenSic;
+    private TextView sicaklikTest;
 
     private static String ip = "192.168.1.223";// this is the host ip that your data base exists on you can use 10.0.2.2 for local host                                                    found on your pc. use if config for windows to find the ip if the database exists on                                                    your pc
     private static String port = "1433";// the port sql server runs on
@@ -187,6 +185,10 @@ public class MainActivity extends AppCompatActivity {
         editTextCalibration.setText(String.valueOf(calibrationValue));
 
         chronometer = findViewById(R.id.chronometer);
+
+        olculenSic = findViewById(R.id.textViewOlculenSıcaklıK);
+        olculenSic.setVisibility(View.INVISIBLE);
+        //sicaklikTest.setVisibility(View.INVISIBLE);
 
         buttonDecreaseCalibration.setOnClickListener(new View.OnClickListener() { //Kalibrasyon kısmında değer girme
             @Override
@@ -380,6 +382,7 @@ public class MainActivity extends AppCompatActivity {
                     startChronometer();
                     startRefreshTimer();
 
+
 //
 //                    websiteRefreshTimer = new Timer();
 //                    websiteRefreshTimer.scheduleAtFixedRate(new TimerTask() {
@@ -501,12 +504,14 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+   public static boolean stopControl=false;
 
     private void startRefreshTimer() {
         if(!editTextAralik.getText().toString().equals("")){
             WEBSITE_REFRESH_INTERVAL = Integer.parseInt(editTextAralik.getText().toString());
             WEBSITE_REFRESH_INTERVAL=WEBSITE_REFRESH_INTERVAL*1000;
             editTextAralik.setEnabled(false);
+            stopControl=true;
             if(WEBSITE_REFRESH_INTERVAL > 0){
                 websiteRefreshTimer = new Timer();
                 websiteRefreshTimer.scheduleAtFixedRate(new TimerTask() {
@@ -517,13 +522,32 @@ public class MainActivity extends AppCompatActivity {
                             public void run() {
                                 Log.d("KAMERA: ", "YENİLENDİ");
 
-                                //readSerialData();
+                                readSerialData();
 
-                                //Log.d("SERİ DATA: ",tempGelen);
+
+                                Log.d("SERİ DATA: "," "+tempGelen);
 
                                 loadWebsite();
 
                                 new TCPReceiver(SERVER_IP, SERVER_PORT, MainActivity.this).execute();
+
+
+
+                                if(!tempGelen.equals("0")){
+
+                                    int equalsIndex = tempGelen.indexOf("=");
+                                    String tempDeger=tempGelen.substring(equalsIndex+1);
+
+                                    if(!roomTempControl){
+                                        olculenSic.setTextColor(Color.parseColor("#FF0000"));
+                                        //sicaklikTest.setTextColor(Color.parseColor("#FF0000"));
+                                    }
+                                    olculenSic.setText(tempDeger);
+                                    //sicaklikTest.setVisibility(View.VISIBLE);
+                                    olculenSic.setVisibility(View.VISIBLE);
+
+                                }
+
                             }
                         });
                     }
@@ -544,6 +568,7 @@ public class MainActivity extends AppCompatActivity {
             websiteRefreshTimer.cancel();
             websiteRefreshTimer.purge();
             websiteRefreshTimer = null;
+            stopControl=false;
 
             startButton.setEnabled(true);
             stopButton.setEnabled(false);
@@ -571,6 +596,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+    boolean roomTempControl=true;
 
 
     public void handleReceivedData(String receivedDataString) {
@@ -579,6 +605,15 @@ public class MainActivity extends AppCompatActivity {
         StringBuilder receivedData = new StringBuilder(receivedDataString);
 
         String roomTemp = getSubstringBetween(receivedData, "86", "254");
+        if(roomTemp.length()>2){
+            String roomTempValue = roomTemp.substring(0, roomTemp.length() - 1) + "." + roomTemp.charAt(roomTemp.length() - 1);
+            if(!roomTempValue.equals(tempGelen)){
+                roomTempControl=false;
+            }
+            else
+                roomTempControl=true;
+        }
+
         String setTemp = getSubstringBetween(receivedData, "72", "254");
         String batteryLevel = getSubstringBetween(receivedData, "84", "254");
         String comfortMode = getSubstringBetween(receivedData, "96", "254");
@@ -597,7 +632,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        saveTcpDataToMSSQL(roomTemp,setTemp,batteryLevel,comfortMode,programMode,ecoMode,minute,hour,weekday,activeProgram,lockStatus,segmentStatus, systemOnOff, wifiStatus,detectStatus);
+        saveTcpDataToMSSQL(roomTemp,setTemp,batteryLevel,comfortMode,programMode,ecoMode,minute,hour,weekday,activeProgram,lockStatus,segmentStatus, systemOnOff, wifiStatus,detectStatus,tempGelen);
 
 
 
@@ -617,11 +652,14 @@ public class MainActivity extends AppCompatActivity {
         int startIndex = original.indexOf(start);
         int endIndex = original.indexOf(end, startIndex + start.length());
 
-        if (startIndex != -1 && endIndex != -1) {
+        if (startIndex != -1 && endIndex != -1 && startIndex + start.length() < endIndex) {
             String result = original.substring(startIndex + start.length(), endIndex);
             original.delete(startIndex, endIndex + end.length()); // Alt dizgiyi temizle
             return result;
-        } else {
+        }else if(startIndex + start.length() >= endIndex) {
+            return end;
+        }
+        else {
             return "";
         }
     }
@@ -632,16 +670,19 @@ public class MainActivity extends AppCompatActivity {
 
     UsbDevice device;
     KabloluSeriBaglanti kabloluSeriBaglanti = new KabloluSeriBaglanti(this,device);
-    //SerialTerminalFragment serialTerminalFragment = new SerialTerminalFragment(this,1,device);
-    String tempGelen;
+    SerialTerminalFragment serialTerminalFragment = new SerialTerminalFragment(this,device);
+
+    String tempGelen="0";
     public void showReceivedData(String data){
     tempGelen=data;
     }
 
     public void readSerialData() {
         kabloluTestBaglan();
-        //serialTerminalFragment.read();
-        //String seriDeger = kabloluSeriBaglanti.read();
+
+        serialTerminalFragment.connect();
+        serialTerminalFragment.read();
+       //String seriDeger = kabloluSeriBaglanti.read();
         //return seriDeger;
     }
 
@@ -662,6 +703,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 if (driver != null) {
                     kabloluSeriBaglanti = new KabloluSeriBaglanti(this, device);
+                    serialTerminalFragment = new SerialTerminalFragment(this,device);
                     return;
                 }
             }
@@ -672,7 +714,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    private void saveTcpDataToMSSQL(String roomTemp, String setTemp, String batteryLevel, String comfortMode, String programMode, String ecoMode, String minute, String hour, String weekday, String activeProgram, String lockStatus, String segmentStatus, String systemOnOff, String wifiStatus, String detectStatus) {
+    private void saveTcpDataToMSSQL(String roomTemp, String setTemp, String batteryLevel, String comfortMode, String programMode, String ecoMode, String minute, String hour, String weekday, String activeProgram, String lockStatus, String segmentStatus, String systemOnOff, String wifiStatus, String detectStatus, String tempGelen) {
 
 
         ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.INTERNET}, PackageManager.PERMISSION_GRANTED);
@@ -687,7 +729,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             Class.forName(Classes);
             connection = DriverManager.getConnection(url,username,password);
-            String insertProcedure = "{call InsertArge(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+            String insertProcedure = "{call InsertArge(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
 
 
@@ -722,6 +764,10 @@ public class MainActivity extends AppCompatActivity {
                 callableStatement.setInt(19, Integer.parseInt(systemOnOff));
                 callableStatement.setInt(20, insertedID);
                 callableStatement.setInt(21, Integer.parseInt(detectStatus));
+
+                int equalsIndex = tempGelen.indexOf("=");
+                String tempDeger=tempGelen.substring(equalsIndex+1);
+                callableStatement.setFloat(22, Float.parseFloat(tempDeger));
 
 
                 callableStatement.execute();

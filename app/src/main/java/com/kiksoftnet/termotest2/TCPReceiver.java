@@ -89,14 +89,17 @@ public class TCPReceiver extends AsyncTask<Void, Void, String> {
                             break;
                         }
                     }
-                    Log.d("TcpReceiver", "Alınan Veri: " + receivedData);
+                    //Log.d("TcpReceiver", "Alınan Veri: " + receivedData);
 
-                    if(receivedData!=null){
+                    if(receivedData!=null&&MainActivity.stopControl){
                         mainActivity.handleReceivedData(receivedData);
                         receivedData="";
 
                         //in.close();
 
+                    }
+                    if(!MainActivity.stopControl){
+                        receivedData="";
                     }
 
 
@@ -112,24 +115,11 @@ public class TCPReceiver extends AsyncTask<Void, Void, String> {
                 }
             }
 
-
-
-
-            // Sunucudan gelen veriyi al
-            //String receivedData = in.readLine();
-
-            //Log.d("TcpReceiver", "Alınan Veri: " + receivedData);
-
-            // Bağlantıları kapat
-//            in.close();
-//            out.close();
-//            socket.close();
-
-            //return null;
         } catch (IOException e) {
             Log.e("TcpReceiver", "Hata: " + e.getMessage());
             return null;
         }
+
     }
     @Override
     protected void onPostExecute(String result) {

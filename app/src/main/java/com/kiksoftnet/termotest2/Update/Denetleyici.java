@@ -39,8 +39,8 @@ public class Denetleyici extends AppCompatActivity {
             else{
                 StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
                 StrictMode.setVmPolicy(builder.build());
-                DownloadFile dw = new DownloadFile(getApplicationContext(), "uretim");
-                dw.execute("http://"+sunucu+"/kurulum/uretim.apk");
+                DownloadFile dw = new DownloadFile(getApplicationContext(), "arge");
+                dw.execute("http://"+sunucu+"/kurulum/arge.apk");
             }
         }catch(Exception ex)
         {
@@ -60,7 +60,7 @@ public class Denetleyici extends AppCompatActivity {
             try {
 
                 ServiceManager serviceManager = new ServiceManager();
-                String guncelveriyon = serviceManager.myPushData("URETIM",Sunucu);
+                String guncelveriyon = serviceManager.myPushData("ARGE",Sunucu);
                 if (guncelveriyon.equalsIgnoreCase("-1")) {
                     return "0";
                 }

@@ -26,6 +26,8 @@ import com.kiksoftnet.termotest2.MainActivity;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class SerialTerminalFragment  implements SerialInputOutputManager.Listener {
@@ -56,11 +58,10 @@ public class SerialTerminalFragment  implements SerialInputOutputManager.Listene
     private double tartiDegeri = 0;
     private boolean connected = true;
 
-    public SerialTerminalFragment(MainActivity parentActivity, int deviceId,  UsbDevice device) {
+    public SerialTerminalFragment(MainActivity parentActivity,  UsbDevice device) {
 
         this.parentActivity = parentActivity;
         this.device = device;
-        this.deviceId = device.getDeviceId();
         portNum = 0;
         baudRate = 9600;
         withIoManager = true;
@@ -209,21 +210,56 @@ public class SerialTerminalFragment  implements SerialInputOutputManager.Listene
     public void receive(byte[] data) {
         try {
 
-            SpannableStringBuilder spn = new SpannableStringBuilder();
-            //spn.append("receive " + data.length + " bytes\n");
-            if (data.length > 0)
-                spn.append(HexDump.dumpHexString(data)).append("\n");
-            String gelentmp = new String(data);
-            gelen = gelen + gelentmp;
 
-            if (gelen.indexOf("T",gelen.indexOf("T")+1) != -1) {
-                gelentmp = gelen.substring(gelen.indexOf("T") + 1);
-                gelentmp=gelentmp.substring(0,gelen.indexOf("T"));
-                Log.d("RECIVE GELEN: ",gelentmp);
-                parentActivity.showReceivedData(gelentmp);
-                // TODO MAINDEN ÇEK parentActivity.
-                //gelen = "";
-            }
+                SpannableStringBuilder spn = new SpannableStringBuilder();
+                //spn.append("receive " + data.length + " bytes\n");
+                if (data.length > 0)
+                    spn.append(HexDump.dumpHexString(data)).append("\n");
+                String gelentmp = new String(data);
+                gelen = gelen + gelentmp;
+                //Log.d("TEMP GELEN : ", gelen);
+
+
+
+
+                if (gelen.indexOf("T",gelen.indexOf("T")+1) != -1) {
+
+                    String pattern = "\\w=\\d+\\.\\d+";
+
+                    // Pattern nesnesini oluştur
+                    Pattern regex = Pattern.compile(pattern);
+
+                    // Matcher nesnesini oluştur ve string üzerinde eşleşmeyi ara
+                    Matcher matcher = regex.matcher(gelen);
+
+                    // Eğer eşleşme bulunursa
+                    if (matcher.find()) {
+                        String matchedValue = matcher.group();
+                        parentActivity.showReceivedData(matchedValue);
+                        System.out.println("Eşleşen Değer: " + matchedValue);
+                    } else {
+                        //System.out.println("Hata: Beklenen desen bulunamadı.");
+                    }
+
+
+
+
+
+//                    gelentmp = gelen.substring(gelen.indexOf("T") + 1);
+//                    gelentmp=gelentmp.substring(0,gelen.indexOf("T"));
+//                    Log.d("RECIVE GELEN: ",gelentmp);
+                    //parentActivity.showReceivedData(gelentmp);
+                    // TODO MAINDEN ÇEK parentActivity.
+                    //gelen = "";
+                }
+                else{
+                    read();
+                }
+
+
+
+
+
 
         } catch (Exception ex) {
             //status("receiveError:"+ex.toString());

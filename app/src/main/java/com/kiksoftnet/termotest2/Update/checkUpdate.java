@@ -38,7 +38,7 @@ import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 public class checkUpdate extends AppCompatActivity {
 
     private static final int PERMISSION_REQUEST_CODE = 200;
-    String sunucu="192.168.1.222:8080";
+    String sunucu="www.kikdestek.com";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,7 +52,7 @@ public class checkUpdate extends AppCompatActivity {
             System.out.println("Update2....");
                     UpdateApp atualizaApp = new UpdateApp();
                     atualizaApp.setContext(checkUpdate.this);
-                    atualizaApp.execute("http://"+sunucu+"/kurulum/uretim.apk");
+                    atualizaApp.execute("http://"+sunucu+"/kurulum/arge.apk");
                 }else
         {
             System.out.println("Update3....");
@@ -73,7 +73,7 @@ public class checkUpdate extends AppCompatActivity {
                 if (locationAccepted && cameraAccepted) {
                     UpdateApp updateApp = new UpdateApp();
                     updateApp.setContext(checkUpdate.this);
-                    updateApp.execute("http://"+sunucu+"/kurulum/uretim.apk");
+                    updateApp.execute("http://"+sunucu+"/kurulum/arge.apk");
                 }
             }
         }
@@ -125,7 +125,7 @@ public class checkUpdate extends AppCompatActivity {
                 String PATH = Objects.requireNonNull(mContext.getExternalFilesDir(null)).getAbsolutePath();
                 File file = new File(PATH);
                 boolean isCreate = file.mkdirs();
-                File outputFile = new File(file, "uretim.apk");
+                File outputFile = new File(file, "arge.apk");
                 if (outputFile.exists()) {
                     boolean isDelete = outputFile.delete();
                 }

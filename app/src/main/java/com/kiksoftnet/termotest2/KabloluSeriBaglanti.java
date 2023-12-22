@@ -146,12 +146,12 @@ public class KabloluSeriBaglanti  implements SerialInputOutputManager.Listener {
                 return "not connected";
             }
             try {
-                byte[] buffer = new byte[4096];
+                byte[] buffer = new byte[8192];
                 int len = usbSerialPort.read(buffer, READ_WAIT_MILLIS);
                 hexgelenveri =bytesToHex(buffer);
-                System.out.println("Gelen HEX:"+hexgelenveri);
+                //System.out.println("Gelen HEX:"+hexgelenveri);
                 gelenveri = hexToString(hexgelenveri);
-                System.out.println("Gelen:"+gelenveri);
+               // System.out.println("Gelen:"+gelenveri);
             } catch (IOException e) {
 
 

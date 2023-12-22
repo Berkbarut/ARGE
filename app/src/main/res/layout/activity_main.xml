@@ -8,42 +8,78 @@
     tools:layout_editor_absoluteY="0dp">
 
 
-    <Button
-        android:id="@+id/buttonReset"
+    <TextView
+        android:id="@+id/textViewTestSuresi"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="376dp"
-        android:layout_marginTop="32dp"
-        android:text="Sıfırla"
-        android:textColor="@android:color/white"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewAralik" />
+        android:layout_marginStart="48dp"
+        android:layout_marginTop="812dp"
+        android:background="#F5F5F5"
+        android:elevation="2dp"
+        android:padding="8dp"
+        android:text="Test Süresi"
+        android:textColor="#00668B"
+        android:textSize="40sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@+id/buttonIncreasePozitif"
+        app:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/textViewOlculenSıcaklıkText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="264dp"
+        android:layout_marginTop="600dp"
+        android:background="#F5F5F5"
+        android:elevation="2dp"
+        android:padding="8dp"
+        android:text="Ölçülen Sıcaklık"
+        android:textColor="#00668B"
+        android:textSize="40sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@+id/editTextUrun"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textViewOlculenSıcaklıK"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="360dp"
+        android:layout_marginTop="4dp"
+        android:background="#F5F5F5"
+        android:elevation="2dp"
+        android:padding="8dp"
+        android:text="0.00"
+        android:textColor="#00668B"
+        android:textSize="40sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@+id/editTextUrun"
+        app:layout_constraintTop_toBottomOf="@+id/textViewOlculenSıcaklıkText" />
 
     <Chronometer
         android:id="@+id/chronometer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:layout_marginTop="992dp"
-        android:layout_marginEnd="132dp"
+        android:layout_marginStart="92dp"
+        android:layout_marginTop="4dp"
         android:background="#F5F5F5"
         android:elevation="2dp"
-        android:format="%s"
+        android:format="%H:%M:%S"
         android:padding="8dp"
         android:text="00:00"
         android:textColor="#00668B"
-        android:textSize="30sp"
+        android:textSize="40sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toStartOf="@+id/startCameraButton"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toEndOf="@+id/buttonIncreaseNegatif"
+        app:layout_constraintTop_toBottomOf="@+id/textViewTestSuresi" />
 
     <TextView
         android:id="@+id/textViewAralik"
         android:layout_width="180dp"
         android:layout_height="40dp"
-        android:layout_marginStart="248dp"
-        android:layout_marginTop="45dp"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="30dp"
         android:background="#F5F5F5"
         android:elevation="2dp"
         android:padding="8dp"
@@ -54,39 +90,303 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textViewEndTime" />
 
-    <EditText
-        android:id="@+id/editTextNegatif"
+    <TextView
+        android:id="@+id/textViewCalibration"
         android:layout_width="180dp"
         android:layout_height="40dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="45dp"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="120dp"
+        android:background="#F5F5F5"
+        android:elevation="2dp"
+        android:padding="8dp"
+        android:text="Kalibrasyon"
+        android:textColor="#00668B"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
+    <EditText
+        android:id="@+id/editTextAraliksn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="30dp"
+        android:background="#FFFFFF"
+        android:digits="0123456789"
+        android:elevation="2dp"
+        android:enabled="false"
+        android:hint="sn"
+        android:inputType="numberDecimal"
+        android:padding="8dp"
+        android:textColor="#000000"
+        app:layout_constraintStart_toEndOf="@+id/editTextAralik"
+        app:layout_constraintTop_toBottomOf="@+id/textViewEndTime" />
+
+    <Button
+        android:id="@+id/buttonIncreaseNegatif"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="28dp"
+
+        android:layout_marginTop="24dp"
+        android:text="+"
+        android:textColor="@android:color/white"
+        app:layout_constraintStart_toEndOf="@+id/editTextNegatif"
+        app:layout_constraintTop_toBottomOf="@+id/buttonIncreasePozitif" />
+
+    <Spinner
+        android:id="@+id/FonksiyonSpinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="256dp"
+        android:layout_marginTop="35dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/radioGroupHeatCool" />
+
+    <TextView
+        android:id="@+id/textViewEndTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="30dp"
+        android:background="#F5F5F5"
+        android:elevation="2dp"
+        android:padding="8dp"
+        android:text="Bitiş Zamanı"
+        android:textColor="#00668B"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewStartTime" />
+
+    <Button
+        android:id="@+id/buttonDecreasePozitif"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="256dp"
+        android:layout_marginTop="24dp"
+        android:text="-"
+        android:textColor="@android:color/white"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonDecreaseCalibration" />
+
+    <TextView
+        android:id="@+id/textViewStartTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="30dp"
+        android:background="#F5F5F5"
+        android:elevation="2dp"
+        android:padding="8dp"
+        android:text="Başlangıç Zamanı"
+        android:textColor="#00668B"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewTip" />
+
+    <EditText
+        android:id="@+id/editTextUrun"
+        android:layout_width="163dp"
+        android:layout_height="38dp"
+        android:layout_marginStart="256dp"
+        android:layout_marginTop="35dp"
+        android:background="#FFFFFF"
+        android:elevation="2dp"
+        android:hint="Ürün ismi girin"
+        android:padding="8dp"
+        android:textColor="#000000"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/FonksiyonSpinner" />
+
+    <TextView
+        android:id="@+id/textViewHeatCool"
+        android:layout_width="180dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="30dp"
+        android:background="#F5F5F5"
+        android:elevation="2dp"
+        android:padding="8dp"
+        android:text="Heat/Cool"
+        android:textColor="#00668B"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewNegatif" />
+
+    <EditText
+        android:id="@+id/editTextAralik"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="256dp"
+        android:layout_marginTop="30dp"
+        android:background="#FFFFFF"
+        android:digits="0123456789"
+        android:elevation="2dp"
+        android:hint="Aralık girin"
+        android:inputType="numberDecimal"
+        android:padding="8dp"
+        android:textColor="#000000"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewEndTime" />
+
+    <Button
+        android:id="@+id/buttonSave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="40dp"
+        android:text="Kaydet"
+        android:textColor="@android:color/white"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewAralik" />
+
+    <EditText
+        android:id="@+id/editTextPozitif"
+        android:layout_width="180dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="35dp"
         android:background="#FFFFFF"
         android:clickable="false"
         android:elevation="2dp"
         android:hint="Değer girin"
         android:padding="8dp"
         android:textColor="#000000"
-        app:layout_constraintStart_toEndOf="@+id/buttonDecreaseNegatif"
-        app:layout_constraintTop_toBottomOf="@+id/editTextPozitif" />
+        app:layout_constraintStart_toEndOf="@+id/buttonDecreasePozitif"
+        app:layout_constraintTop_toBottomOf="@+id/editTextCalibration" />
+
+    <EditText
+        android:id="@+id/editTextCalibration"
+        android:layout_width="180dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="120dp"
+        android:background="#FFFFFF"
+        android:clickable="false"
+        android:elevation="2dp"
+        android:hint="Değer girin"
+        android:padding="8dp"
+        android:textColor="#000000"
+        app:layout_constraintStart_toEndOf="@+id/buttonDecreaseCalibration"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textViewNegatif"
+        android:layout_width="180dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="30dp"
+        android:background="#F5F5F5"
+        android:elevation="2dp"
+        android:padding="8dp"
+        android:text="Histerisiz Negatif"
+        android:textColor="#00668B"
+        android:textSize="20sp"
+
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewPozitif" />
+
+    <TextView
+        android:id="@+id/textViewUrun"
+        android:layout_width="180dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="30dp"
+        android:background="#F5F5F5"
+        android:elevation="2dp"
+        android:padding="8dp"
+        android:text="Ürün"
+        android:textColor="#00668B"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewFonksiyon" />
+
+    <Button
+        android:id="@+id/buttonIncreaseCalibration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="120dp"
+        android:text="+"
+        android:textColor="@android:color/white"
+        app:layout_constraintStart_toEndOf="@+id/editTextCalibration"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/buttonReset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="184dp"
+        android:layout_marginTop="40dp"
+        android:text="Sıfırla"
+        android:textColor="@android:color/white"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewAralik" />
 
     <Button
         android:id="@+id/buttonDecreaseCalibration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="450dp"
-        android:layout_marginTop="60dp"
+        android:layout_marginStart="256dp"
+        android:layout_marginTop="120dp"
         android:text="-"
         android:textColor="@android:color/white"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <EditText
+        android:id="@+id/editTextIslemci"
+        android:layout_width="152dp"
+        android:layout_height="42dp"
+        android:layout_marginStart="256dp"
+        android:layout_marginTop="32dp"
+        android:background="#FFFFFF"
+        android:elevation="2dp"
+        android:hint="İşlemci ismi girin"
+        android:padding="8dp"
+        android:textColor="#000000"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextUrun" />
+
+    <TextView
+        android:id="@+id/textViewPozitif"
+        android:layout_width="180dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="30dp"
+        android:background="#F5F5F5"
+        android:elevation="2dp"
+        android:padding="8dp"
+        android:text="Histerisiz Pozitif"
+        android:textColor="#00668B"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewCalibration" />
+
+    <Button
+        android:id="@+id/buttonDecreaseNegatif"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="256dp"
+        android:layout_marginTop="24dp"
+        android:text="-"
+        android:textColor="@android:color/white"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonDecreasePozitif" />
+
     <RadioGroup
         android:id="@+id/radioGroupHeatCool"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="450dp"
-        android:layout_marginTop="35dp"
+        android:layout_marginStart="256dp"
+        android:layout_marginTop="18dp"
         android:orientation="horizontal"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/buttonDecreaseNegatif">
@@ -117,27 +417,12 @@
             />
     </RadioGroup>
 
-    <EditText
-        android:id="@+id/editTextCalibration"
-        android:layout_width="180dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="60dp"
-        android:background="#FFFFFF"
-        android:clickable="false"
-        android:elevation="2dp"
-        android:hint="Değer girin"
-        android:padding="8dp"
-        android:textColor="#000000"
-        app:layout_constraintStart_toEndOf="@+id/buttonDecreaseCalibration"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <TextView
         android:id="@+id/textViewTip"
         android:layout_width="180dp"
         android:layout_height="40dp"
-        android:layout_marginStart="248dp"
-        android:layout_marginTop="45dp"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="30dp"
         android:background="#F5F5F5"
         android:elevation="2dp"
         android:padding="8dp"
@@ -148,67 +433,12 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textViewIslemci" />
 
-    <EditText
-        android:id="@+id/editTextAraliksn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="45dp"
-        android:background="#FFFFFF"
-        android:digits="0123456789"
-        android:elevation="2dp"
-        android:enabled="false"
-        android:hint="sn"
-        android:inputType="numberDecimal"
-        android:padding="8dp"
-        android:textColor="#000000"
-        app:layout_constraintStart_toEndOf="@+id/editTextAralik"
-        app:layout_constraintTop_toBottomOf="@+id/textViewEndTime" />
-
-    <EditText
-        android:id="@+id/editTextAralik"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="450dp"
-        android:layout_marginTop="45dp"
-        android:background="#FFFFFF"
-        android:digits="0123456789"
-        android:elevation="2dp"
-        android:hint="Aralık girin"
-        android:inputType="numberDecimal"
-        android:padding="8dp"
-        android:textColor="#000000"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewEndTime" />
-
-    <Button
-        android:id="@+id/buttonIncreaseCalibration"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="60dp"
-        android:text="+"
-        android:textColor="@android:color/white"
-        app:layout_constraintStart_toEndOf="@+id/editTextCalibration"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/buttonIncreasePozitif"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="35dp"
-        android:text="+"
-        android:textColor="@android:color/white"
-        app:layout_constraintStart_toEndOf="@+id/editTextPozitif"
-        app:layout_constraintTop_toBottomOf="@+id/buttonIncreaseCalibration" />
-
     <TextView
         android:id="@+id/textViewFonksiyon"
         android:layout_width="180dp"
         android:layout_height="40dp"
-        android:layout_marginStart="248dp"
-        android:layout_marginTop="45dp"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="30dp"
         android:background="#F5F5F5"
         android:elevation="2dp"
         android:padding="8dp"
@@ -219,215 +449,23 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textViewHeatCool" />
 
-    <EditText
-        android:id="@+id/editTextPozitif"
-        android:layout_width="180dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="45dp"
-        android:background="#FFFFFF"
-        android:clickable="false"
-        android:elevation="2dp"
-        android:hint="Değer girin"
-        android:padding="8dp"
-        android:textColor="#000000"
-        app:layout_constraintStart_toEndOf="@+id/buttonDecreasePozitif"
-        app:layout_constraintTop_toBottomOf="@+id/editTextCalibration" />
-
-    <TextView
-        android:id="@+id/textViewNegatif"
-        android:layout_width="180dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="248dp"
-        android:layout_marginTop="45dp"
-        android:background="#F5F5F5"
-        android:elevation="2dp"
-        android:padding="8dp"
-        android:text="Histerisiz Negatif"
-        android:textColor="#00668B"
-        android:textSize="20sp"
-
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewPozitif" />
-
-    <EditText
-        android:id="@+id/editTextUrun"
-        android:layout_width="163dp"
-        android:layout_height="38dp"
-        android:layout_marginStart="450dp"
-        android:layout_marginTop="55dp"
-        android:background="#FFFFFF"
-        android:elevation="2dp"
-        android:hint="Ürün ismi girin"
-        android:padding="8dp"
-        android:textColor="#000000"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/FonksiyonSpinner" />
-
     <Button
-        android:id="@+id/buttonIncreaseNegatif"
+        android:id="@+id/buttonIncreasePozitif"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-
-        android:layout_marginTop="35dp"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="24dp"
         android:text="+"
         android:textColor="@android:color/white"
-        app:layout_constraintStart_toEndOf="@+id/editTextNegatif"
-        app:layout_constraintTop_toBottomOf="@+id/buttonIncreasePozitif" />
-
-    <Button
-        android:id="@+id/buttonDecreasePozitif"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="450dp"
-        android:layout_marginTop="35dp"
-        android:text="-"
-        android:textColor="@android:color/white"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonDecreaseCalibration" />
-
-    <TextView
-        android:id="@+id/textViewEndTime"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="248dp"
-        android:layout_marginTop="45dp"
-        android:background="#F5F5F5"
-        android:elevation="2dp"
-        android:padding="8dp"
-        android:text="Bitiş Zamanı"
-        android:textColor="#00668B"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewStartTime" />
-
-    <TextView
-        android:id="@+id/textViewUrun"
-        android:layout_width="180dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="248dp"
-        android:layout_marginTop="45dp"
-        android:background="#F5F5F5"
-        android:elevation="2dp"
-        android:padding="8dp"
-        android:text="Ürün"
-        android:textColor="#00668B"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewFonksiyon" />
-
-    <TextView
-        android:id="@+id/textViewPozitif"
-        android:layout_width="180dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="248dp"
-        android:layout_marginTop="45dp"
-        android:background="#F5F5F5"
-        android:elevation="2dp"
-        android:padding="8dp"
-        android:text="Histerisiz Pozitif"
-        android:textColor="#00668B"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewCalibration" />
-
-    <TextView
-        android:id="@+id/textViewStartTime"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="248dp"
-        android:layout_marginTop="45dp"
-        android:background="#F5F5F5"
-        android:elevation="2dp"
-        android:padding="8dp"
-        android:text="Başlangıç Zamanı"
-        android:textColor="#00668B"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewTip" />
-
-    <EditText
-        android:id="@+id/editTextIslemci"
-        android:layout_width="152dp"
-        android:layout_height="42dp"
-        android:layout_marginStart="450dp"
-        android:layout_marginTop="45dp"
-        android:background="#FFFFFF"
-        android:elevation="2dp"
-        android:hint="İşlemci ismi girin"
-        android:padding="8dp"
-        android:textColor="#000000"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextUrun" />
-
-    <Button
-        android:id="@+id/buttonSave"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="248dp"
-        android:layout_marginTop="32dp"
-        android:text="Kaydet"
-        android:textColor="@android:color/white"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewAralik" />
-
-    <Spinner
-        android:id="@+id/FonksiyonSpinner"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="450dp"
-        android:layout_marginTop="50dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/radioGroupHeatCool" />
-
-    <Spinner
-        android:id="@+id/spinnerTip"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="450dp"
-        android:layout_marginTop="55dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextIslemci" />
-
-    <TextView
-        android:id="@+id/textViewCalibration"
-        android:layout_width="180dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="248dp"
-        android:layout_marginTop="60dp"
-        android:background="#F5F5F5"
-        android:elevation="2dp"
-        android:padding="8dp"
-        android:text="Kalibrasyon"
-        android:textColor="#00668B"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/buttonDecreaseNegatif"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="450dp"
-        android:layout_marginTop="35dp"
-        android:text="-"
-        android:textColor="@android:color/white"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonDecreasePozitif" />
+        app:layout_constraintStart_toEndOf="@+id/editTextPozitif"
+        app:layout_constraintTop_toBottomOf="@+id/buttonIncreaseCalibration" />
 
     <TextView
         android:id="@+id/textViewIslemci"
         android:layout_width="180dp"
         android:layout_height="40dp"
-        android:layout_marginStart="248dp"
-        android:layout_marginTop="45dp"
+        android:layout_marginStart="56dp"
+        android:layout_marginTop="30dp"
         android:background="#F5F5F5"
         android:elevation="2dp"
         android:padding="8dp"
@@ -438,21 +476,30 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textViewUrun" />
 
-    <TextView
-        android:id="@+id/textViewHeatCool"
+    <Spinner
+        android:id="@+id/spinnerTip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="256dp"
+        android:layout_marginTop="32dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextIslemci" />
+
+    <EditText
+        android:id="@+id/editTextNegatif"
         android:layout_width="180dp"
         android:layout_height="40dp"
-        android:layout_marginStart="248dp"
-        android:layout_marginTop="45dp"
-        android:background="#F5F5F5"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="35dp"
+
+        android:background="#FFFFFF"
+        android:clickable="false"
         android:elevation="2dp"
+        android:hint="Değer girin"
         android:padding="8dp"
-        android:text="Heat/Cool"
-        android:textColor="#00668B"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewNegatif" />
+        android:textColor="#000000"
+        app:layout_constraintStart_toEndOf="@+id/buttonDecreaseNegatif"
+        app:layout_constraintTop_toBottomOf="@+id/editTextPozitif" />
 
     <!-- Ürün -->
 
@@ -466,23 +513,24 @@
         android:id="@+id/createChartButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="84dp"
+        android:layout_marginStart="488dp"
+        android:layout_marginBottom="4dp"
         android:text="Grafik Oluştur"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
+
     <Button
         android:id="@+id/reportButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="64dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginStart="400dp"
+        android:layout_marginBottom="4dp"
         android:text="Raporla"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-
 
     <WebView
         android:id="@+id/webView"
@@ -506,7 +554,7 @@
         android:id="@+id/startCameraButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="976dp"
+        android:layout_marginStart="1180dp"
         android:layout_marginTop="32dp"
         android:text="Başlat"
         android:textColor="@android:color/white"
@@ -528,7 +576,7 @@
         android:id="@+id/imageViewLogo"
         android:layout_width="220dp"
         android:layout_height="103dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="24dp"
         android:layout_marginEnd="1684dp"
         android:src="@drawable/kiklogo"
         app:layout_constraintEnd_toEndOf="parent"
