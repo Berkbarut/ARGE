@@ -37,6 +37,7 @@
         android:textColor="#00668B"
         android:textSize="40sp"
         android:textStyle="bold"
+        android:visibility="invisible"
         app:layout_constraintStart_toEndOf="@+id/editTextUrun"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -53,6 +54,7 @@
         android:textColor="#00668B"
         android:textSize="40sp"
         android:textStyle="bold"
+        android:visibility="invisible"
         app:layout_constraintStart_toEndOf="@+id/editTextUrun"
         app:layout_constraintTop_toBottomOf="@+id/textViewOlculenSıcaklıkText" />
 
@@ -554,8 +556,7 @@
         android:id="@+id/startCameraButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="1180dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginStart="1176dp"
         android:text="Başlat"
         android:textColor="@android:color/white"
         app:layout_constraintStart_toEndOf="@+id/buttonSave"
@@ -565,8 +566,7 @@
         android:id="@+id/stopCameraButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="264dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginStart="268dp"
         android:text="Durdur"
         android:textColor="@android:color/white"
         app:layout_constraintStart_toEndOf="@+id/startCameraButton"
@@ -580,6 +580,16 @@
         android:layout_marginEnd="1684dp"
         android:src="@drawable/kiklogo"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textViewVersionCheck"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="11dp"
+        android:layout_marginTop="65dp"
+        android:text="TextView"
+        app:layout_constraintStart_toEndOf="@+id/imageViewLogo"
         app:layout_constraintTop_toTopOf="parent" />
 
 

@@ -27,7 +27,7 @@ public class Denetleyici extends AppCompatActivity {
         try {
             SharedPreferences sharedPreferences =
                     PreferenceManager.getDefaultSharedPreferences(this /* Activity context */);
-            String sunucu=sharedPreferences.getString("sunucu", "");
+            String sunucu="www.kikdestek.com";
 
             //if (sunucu.equalsIgnoreCase(""))
             //    sunucu="192.168.1.34:8081";

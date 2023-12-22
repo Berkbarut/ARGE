@@ -92,6 +92,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView textViewStartTime;
     private TextView textViewEndTime;
 
+    private TextView textViewVersionCheck;
+
     private EditText editTextAralik;
 
     private Button createChartButton;
@@ -189,6 +191,8 @@ public class MainActivity extends AppCompatActivity {
         olculenSic = findViewById(R.id.textViewOlculenSıcaklıK);
         olculenSic.setVisibility(View.INVISIBLE);
         //sicaklikTest.setVisibility(View.INVISIBLE);
+        textViewVersionCheck = findViewById(R.id.textViewVersionCheck);
+        textViewVersionCheck.setText(ValueHelper.version);
 
         buttonDecreaseCalibration.setOnClickListener(new View.OnClickListener() { //Kalibrasyon kısmında değer girme
             @Override
@@ -544,7 +548,7 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                     olculenSic.setText(tempDeger);
                                     //sicaklikTest.setVisibility(View.VISIBLE);
-                                    olculenSic.setVisibility(View.VISIBLE);
+                                    //olculenSic.setVisibility(View.VISIBLE);
 
                                 }
 

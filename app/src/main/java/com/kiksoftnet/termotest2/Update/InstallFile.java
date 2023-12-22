@@ -26,7 +26,7 @@ public class InstallFile {
     }
 
     public void installFile() {
-        File file = new File(context.getFilesDir()+"/uretim.apk");
+        File file = new File(context.getFilesDir()+"/arge.apk");
         Intent promptInstall = new Intent(Intent.ACTION_VIEW);
         Uri fileUri =
                 FileProvider.getUriForFile(Objects.requireNonNull(context.getApplicationContext()),

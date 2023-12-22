@@ -83,7 +83,7 @@ public class DownloadFile extends AsyncTask<String, Integer, String> {
                 if (isCancelled()) {
                     input.close();
                     output.close();
-                    file = new File(fpath + "/" + "uretim" + ".apk");
+                    file = new File(fpath + "/" + "arge" + ".apk");
                     if (file.exists()) {
                         file.delete();
                     }
