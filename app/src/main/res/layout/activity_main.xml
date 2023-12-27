@@ -8,6 +8,15 @@
     tools:layout_editor_absoluteY="0dp">
 
 
+    <Spinner
+        android:id="@+id/spinnerAralikBirim"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="256dp"
+        app:layout_constraintStart_toEndOf="@+id/editTextAralik"
+        app:layout_constraintTop_toBottomOf="@+id/editTextIslemci" />
+
     <TextView
         android:id="@+id/textViewTestSuresi"
         android:layout_width="wrap_content"
@@ -108,23 +117,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <EditText
-        android:id="@+id/editTextAraliksn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:layout_marginTop="30dp"
-        android:background="#FFFFFF"
-        android:digits="0123456789"
-        android:elevation="2dp"
-        android:enabled="false"
-        android:hint="sn"
-        android:inputType="numberDecimal"
-        android:padding="8dp"
-        android:textColor="#000000"
-        app:layout_constraintStart_toEndOf="@+id/editTextAralik"
-        app:layout_constraintTop_toBottomOf="@+id/textViewEndTime" />
-
     <Button
         android:id="@+id/buttonIncreaseNegatif"
         android:layout_width="wrap_content"
@@ -170,6 +162,8 @@
         android:layout_marginTop="24dp"
         android:text="-"
         android:textColor="@android:color/white"
+        android:backgroundTint="@color/design_default_color_error"
+
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/buttonDecreaseCalibration" />
 
@@ -189,7 +183,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textViewTip" />
 
-    <EditText
+    <Spinner
         android:id="@+id/editTextUrun"
         android:layout_width="163dp"
         android:layout_height="38dp"
@@ -317,6 +311,7 @@
         android:layout_marginTop="120dp"
         android:text="+"
         android:textColor="@android:color/white"
+        android:backgroundTint="@color/purple_500"
         app:layout_constraintStart_toEndOf="@+id/editTextCalibration"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -328,6 +323,8 @@
         android:layout_marginTop="40dp"
         android:text="Sıfırla"
         android:textColor="@android:color/white"
+        android:backgroundTint="@color/design_default_color_error"
+
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textViewAralik" />
 
@@ -339,10 +336,11 @@
         android:layout_marginTop="120dp"
         android:text="-"
         android:textColor="@android:color/white"
+        android:backgroundTint="@color/design_default_color_error"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <EditText
+    <Spinner
         android:id="@+id/editTextIslemci"
         android:layout_width="152dp"
         android:layout_height="42dp"
@@ -380,6 +378,8 @@
         android:layout_marginTop="24dp"
         android:text="-"
         android:textColor="@android:color/white"
+        android:backgroundTint="@color/design_default_color_error"
+
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/buttonDecreasePozitif" />
 
@@ -556,30 +556,32 @@
         android:id="@+id/startCameraButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="1176dp"
+        android:layout_marginEnd="268dp"
         android:text="Başlat"
         android:textColor="@android:color/white"
-        app:layout_constraintStart_toEndOf="@+id/buttonSave"
+        app:layout_constraintEnd_toStartOf="@+id/stopCameraButton"
         app:layout_constraintTop_toBottomOf="@+id/webView" />
 
     <Button
         android:id="@+id/stopCameraButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="268dp"
+        android:layout_marginEnd="144dp"
         android:text="Durdur"
         android:textColor="@android:color/white"
-        app:layout_constraintStart_toEndOf="@+id/startCameraButton"
+        android:backgroundTint="@color/design_default_color_error"
+
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/webView" />
 
     <ImageView
         android:id="@+id/imageViewLogo"
         android:layout_width="220dp"
         android:layout_height="103dp"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="24dp"
-        android:layout_marginEnd="1684dp"
         android:src="@drawable/kiklogo"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
@@ -591,6 +593,29 @@
         android:text="TextView"
         app:layout_constraintStart_toEndOf="@+id/imageViewLogo"
         app:layout_constraintTop_toTopOf="parent" />
+
+
+    <Button
+        android:id="@+id/buttonGetInputIslemci"
+        android:layout_width="51dp"
+        android:layout_height="46dp"
+        android:layout_marginStart="35dp"
+        android:layout_marginTop="23dp"
+        android:text="+"
+        android:textSize="20dp"
+        app:layout_constraintStart_toEndOf="@+id/editTextIslemci"
+        app:layout_constraintTop_toBottomOf="@+id/buttonGetInputUrun" />
+
+    <Button
+        android:id="@+id/buttonGetInputUrun"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="160dp"
+        android:text="+"
+        android:textSize="20dp"
+        app:layout_constraintStart_toEndOf="@+id/editTextUrun"
+        app:layout_constraintTop_toBottomOf="@+id/editTextNegatif" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

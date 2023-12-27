@@ -22,5 +22,9 @@
         <item>Kablosuz</item>
         <item>Wifi</item>
     </string-array>
+    <string-array name="aralik_options">
+        <item>Saniye</item>
+        <item>Dakika</item>
+    </string-array>
 
 </resources>

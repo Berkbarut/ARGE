@@ -1,8 +1,10 @@
 package com.kiksoftnet.termotest2;
 
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -17,6 +19,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.StrictMode;
 import android.os.SystemClock;
+import android.text.InputType;
 import android.util.Log;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -51,12 +54,15 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -86,8 +92,18 @@ public class MainActivity extends AppCompatActivity {
     private EditText editTextProduct;
     private EditText editTextIslemci;
     private Spinner spinnerTip;
+    private Spinner islemciSpinner;
+    private Spinner urunSpinner;
+
     private WebView webView;
     private WebView webView2;
+
+    private Spinner spinnerAralik;
+    private boolean aralikbirim;
+    private List<String> urunList;
+    private List<String> islemciList;
+
+
 
     private TextView textViewStartTime;
     private TextView textViewEndTime;
@@ -119,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
     String urunString="";
     String islemciString="";
     String tipString="Kablolu";
+    String aralikBirimString = "sn";
     private TCPReceiver tcpReceiver;
     private String receivedData;
     private TextView olculenSic;
@@ -169,11 +186,14 @@ public class MainActivity extends AppCompatActivity {
         spinnerFunction.setAdapter(adapter);
 
         // Ürün
-        editTextProduct = findViewById(R.id.editTextUrun);
+        //editTextProduct = findViewById(R.id.editTextUrun);
+
+
+        Button buttonSave = findViewById(R.id.buttonSave);
 
 
         // İşlemci
-        editTextIslemci = findViewById(R.id.editTextIslemci);
+        //editTextIslemci = findViewById(R.id.editTextIslemci);
 
         // Tip
         spinnerTip = findViewById(R.id.spinnerTip);
@@ -183,6 +203,11 @@ public class MainActivity extends AppCompatActivity {
 
         //Aralık
         editTextAralik = findViewById(R.id.editTextAralik);
+        spinnerAralik=findViewById(R.id.spinnerAralikBirim);
+        ArrayAdapter<CharSequence> aralikAdapter = ArrayAdapter.createFromResource(this, R.array.aralik_options, android.R.layout.simple_spinner_item);
+        aralikAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerAralik.setAdapter(aralikAdapter);
+
 
         editTextCalibration.setText(String.valueOf(calibrationValue));
 
@@ -194,6 +219,12 @@ public class MainActivity extends AppCompatActivity {
         textViewVersionCheck = findViewById(R.id.textViewVersionCheck);
         textViewVersionCheck.setText(ValueHelper.version);
 
+
+
+        getLists();
+
+        getDataFromMSSQL();
+
         buttonDecreaseCalibration.setOnClickListener(new View.OnClickListener() { //Kalibrasyon kısmında değer girme
             @Override
             public void onClick(View v) {
@@ -204,6 +235,7 @@ public class MainActivity extends AppCompatActivity {
                     String temp=String.format("%.1f",calibrationValue);
                     temp=temp.replace(",", ".");
                     calibrationValue=Double.parseDouble(temp);
+                    buttonSave.setEnabled(true);
                 }
             }
         });
@@ -218,11 +250,12 @@ public class MainActivity extends AppCompatActivity {
                     temp=temp.replace(",", ".");
                     calibrationValue=Double.parseDouble(temp);
 
+                    buttonSave.setEnabled(true);
                 }
             }
         });
 
-        editTextPozitif.setText(String.valueOf(histerisizPozitifValue));
+        editTextPozitif.setText(String.format("%.1f",histerisizPozitifValue));
         buttonDecreasePozitif.setOnClickListener(new View.OnClickListener() {//Histerisiz pozitif değer girme
             @Override
             public void onClick(View v) {
@@ -232,6 +265,8 @@ public class MainActivity extends AppCompatActivity {
                     String temp=String.format("%.1f",histerisizPozitifValue);
                     temp=temp.replace(",", ".");
                     histerisizPozitifValue=Double.parseDouble(temp);
+
+                    buttonSave.setEnabled(true);
                 }
             }
         });
@@ -246,11 +281,12 @@ public class MainActivity extends AppCompatActivity {
                     temp=temp.replace(",", ".");
                     histerisizPozitifValue=Double.parseDouble(temp);
 
+                    buttonSave.setEnabled(true);
                 }
             }
         });
 
-        editTextNegatif.setText(String.valueOf(histerisizNegatifValue));
+        editTextNegatif.setText(String.format("%.1f",histerisizNegatifValue));
         buttonDecreaseNegatif.setOnClickListener(new View.OnClickListener() {//Histerisiz negatif değer girme
             @Override
             public void onClick(View v) {
@@ -261,6 +297,7 @@ public class MainActivity extends AppCompatActivity {
                     temp=temp.replace(",", ".");
                     histerisizNegatifValue=Double.parseDouble(temp);
 
+                    buttonSave.setEnabled(true);
                 }
             }
         });
@@ -275,6 +312,7 @@ public class MainActivity extends AppCompatActivity {
                     temp=temp.replace(",", ".");
                     histerisizNegatifValue=Double.parseDouble(temp);
 
+                    buttonSave.setEnabled(true);
                 }
             }
         });
@@ -286,9 +324,11 @@ public class MainActivity extends AppCompatActivity {
                 if (checkedId == R.id.radioButtonHeat) {
                     // Sıcak seçildi
                     heatCoolString="Heat";
+                    buttonSave.setEnabled(true);
                 } else if (checkedId == R.id.radioButtonCool) {
                     // Soğuk seçildi
                     heatCoolString="Cool";
+                    buttonSave.setEnabled(true);
                 }
             }
         });
@@ -300,21 +340,98 @@ public class MainActivity extends AppCompatActivity {
                 if (selectedFunction.equals("TPI")) {
                     // TPI seçildiğinde yapılacak işlemler
                     fonksiyonString="TPI";
+
+                    editTextPozitif.setEnabled(false);
+                    buttonDecreasePozitif.setEnabled(false);
+                    buttonIncreasePozitif.setEnabled(false);
+
+                    editTextNegatif.setEnabled(false);
+                    buttonDecreaseNegatif.setEnabled(false);
+                    buttonIncreaseNegatif.setEnabled(false);
+
+                    buttonSave.setEnabled(true);
+
+//                    editTextPozitif.setText("");
+//                    editTextNegatif.setText("");
+
                 } else if (selectedFunction.equals("Modülasyon")) {
                     // Modülasyon seçildiğinde yapılacak işlemler
                     fonksiyonString="Modulasyon";
+
+                    editTextPozitif.setEnabled(false);
+                    buttonDecreasePozitif.setEnabled(false);
+                    buttonIncreasePozitif.setEnabled(false);
+
+                    editTextNegatif.setEnabled(false);
+                    buttonDecreaseNegatif.setEnabled(false);
+                    buttonIncreaseNegatif.setEnabled(false);
+
+                    buttonSave.setEnabled(true);
+
+//                    editTextPozitif.setText("");
+//                    editTextNegatif.setText("");
                 } else if (selectedFunction.equals("ON/OFF")) {
                     // ON/OFF seçildiğinde yapılacak işlemler
                     fonksiyonString="ON/OFF";
+
+                    editTextPozitif.setEnabled(false);
+                    buttonDecreasePozitif.setEnabled(true);
+                    buttonIncreasePozitif.setEnabled(true);
+
+                    editTextNegatif.setEnabled(false);
+                    buttonDecreaseNegatif.setEnabled(true);
+                    buttonIncreaseNegatif.setEnabled(true);
+
+                    buttonSave.setEnabled(true);
+//                    editTextPozitif.setText(String.format("%.1f",histerisizPozitifValue));
+//                    editTextNegatif.setText(String.format("%.1f",histerisizNegatifValue));
+
                 } else if (selectedFunction.equals("Akıllı")) {
                     // Akıllı seçildiğinde yapılacak işlemler
                     fonksiyonString="Akilli";
+
+                    editTextPozitif.setEnabled(false);
+                    buttonDecreasePozitif.setEnabled(true);
+                    buttonIncreasePozitif.setEnabled(true);
+
+                    editTextNegatif.setEnabled(false);
+                    buttonDecreaseNegatif.setEnabled(true);
+                    buttonIncreaseNegatif.setEnabled(true);
+
+                    buttonSave.setEnabled(true);
+
+//
+//                    editTextPozitif.setText(String.format("%.1f",histerisizPozitifValue));
+//                    editTextNegatif.setText(String.format("%.1f",histerisizNegatifValue));
+
                 }
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parentView) {
                 // Bir şey seçilmediğinde yapılacak işlemler
+            }
+        });
+
+        spinnerAralik.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                String selectedAralik = (String) spinnerAralik.getSelectedItem();
+                if(selectedAralik.equals("Saniye")){
+                    aralikbirim=true;
+                    aralikBirimString="sn";
+                    buttonSave.setEnabled(true);
+                }
+                else if(selectedAralik.equals("Dakika")){
+                    aralikbirim=false;
+                    aralikBirimString="dak";
+                    buttonSave.setEnabled(true);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
             }
         });
 
@@ -325,12 +442,15 @@ public class MainActivity extends AppCompatActivity {
                 if (selectedTip.equals("Kablolu")) {
                     // Kablolu seçildiğinde yapılacak işlemler
                     tipString="Kablolu";
+                    buttonSave.setEnabled(true);
                 } else if (selectedTip.equals("Kablosuz")) {
                     // Kablosuz seçildiğinde yapılacak işlemler
                     tipString="Kablosuz";
+                    buttonSave.setEnabled(true);
                 } else if (selectedTip.equals("Wifi")) {
                     // Wifi seçildiğinde yapılacak işlemler
                     tipString="Wifi";
+                    buttonSave.setEnabled(true);
                 }
             }
 
@@ -346,6 +466,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 showDateTimePicker(true);
+                buttonSave.setEnabled(true);
             }
         });
 
@@ -353,6 +474,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 showDateTimePicker(false);
+                buttonSave.setEnabled(true);
             }
         });
 
@@ -425,20 +547,37 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        editTextAralik.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                buttonSave.setEnabled(true);
+            }
+        });
 
 
 
-        Button buttonSave = findViewById(R.id.buttonSave);
+
+
+
+
+
+
+
+
+
         buttonSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                urunString=editTextProduct.getText().toString();
-                islemciString=editTextIslemci.getText().toString();
+               // urunString=editTextProduct.getText().toString();
+                //islemciString=editTextIslemci.getText().toString();
 
                 // Kullanıcının girdiği verileri al
 
                 // Verileri MSSQL veritabanına kaydet
-                saveDataToMSSQL((float)calibrationValue,(float) histerisizPozitifValue,(float)histerisizNegatifValue,heatCoolString,fonksiyonString,urunString,islemciString,tipString,baslangicDate,bitisDate,Integer.parseInt(editTextAralik.getText().toString()));
+                saveDataToMSSQL((float)calibrationValue,(float) histerisizPozitifValue,(float)histerisizNegatifValue,heatCoolString,fonksiyonString,urunString,islemciString,tipString,baslangicDate,bitisDate,Integer.parseInt(editTextAralik.getText().toString()),aralikBirimString);
+                Toast.makeText(getApplicationContext(),"KAYDETME BAŞARILI",Toast.LENGTH_LONG).show();
+                buttonSave.setEnabled(false);
+
             }
         });
 
@@ -471,6 +610,54 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+        urunSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                buttonSave.setEnabled(true);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+        islemciSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                buttonSave.setEnabled(true);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
+
+
+
+
+
+
+
+
+        Button getInputIslemciButton = findViewById(R.id.buttonGetInputIslemci);
+        getInputIslemciButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showInputDialogIslemci();
+            }
+        });
+        Button getInputUrunButton = findViewById(R.id.buttonGetInputUrun);
+        getInputUrunButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showInputDialogUrun();
+            }
+        });
+
+
+
 
 
 
@@ -490,6 +677,74 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void showInputDialogUrun() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("ÜRÜN EKLEYİN");
+
+        final EditText inputEditText = new EditText(this);
+        inputEditText.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(inputEditText);
+
+        builder.setPositiveButton("EKLE", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String userInput = inputEditText.getText().toString();
+
+                if(!userInput.equals("")){
+                    saveUrunDataToMSSQL(userInput);
+                    getLists();
+
+                }
+                else
+                    Toast.makeText(getApplicationContext(),"LÜTFEN ALANI BOŞ BIRAKMAYINIZ",Toast.LENGTH_LONG).show();
+
+
+            }
+        });
+
+        builder.setNegativeButton("İPTAL", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
+
+    private void showInputDialogIslemci() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("IŞLEMCİ EKLEYİN");
+
+        final EditText inputEditText = new EditText(this);
+        inputEditText.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(inputEditText);
+
+        builder.setPositiveButton("EKLE", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String userInput = inputEditText.getText().toString();
+                if(!userInput.equals("")){
+                    saveIslemciDataToMSSQL(userInput);
+                    getLists();
+                }
+                else
+                    Toast.makeText(getApplicationContext(),"LÜTFEN ALANI BOŞ BIRAKMAYINIZ",Toast.LENGTH_LONG).show();
+
+            }
+        });
+
+        builder.setNegativeButton("İPTAL", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
+
+
     private void startChronometer() {
         if (!isRunning) {
             chronometer.setBase(SystemClock.elapsedRealtime() - pauseOffset);
@@ -505,6 +760,40 @@ public class MainActivity extends AppCompatActivity {
             isRunning = false;
         }
     }
+    private void getLists(){
+
+        urunSpinner = findViewById(R.id.editTextUrun);
+        urunList=getUrunFromMSSQL();
+        ArrayAdapter<String> urunAdapter = new ArrayAdapter<>(this,android.R.layout.simple_spinner_item, urunList);
+        urunSpinner.setAdapter(urunAdapter);
+        urunSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                urunString=urunList.get(i);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
+        islemciSpinner = findViewById(R.id.editTextIslemci);
+        islemciList=getIslemciFromMSSQL();
+        ArrayAdapter<String> islemciAdapter = new ArrayAdapter<>(this,android.R.layout.simple_spinner_item, islemciList);
+        islemciSpinner.setAdapter(islemciAdapter);
+        islemciSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                islemciString=islemciList.get(i);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+    }
 
 
 
@@ -514,6 +803,9 @@ public class MainActivity extends AppCompatActivity {
         if(!editTextAralik.getText().toString().equals("")){
             WEBSITE_REFRESH_INTERVAL = Integer.parseInt(editTextAralik.getText().toString());
             WEBSITE_REFRESH_INTERVAL=WEBSITE_REFRESH_INTERVAL*1000;
+            if(!aralikbirim){
+                WEBSITE_REFRESH_INTERVAL=WEBSITE_REFRESH_INTERVAL*60;
+            }
             editTextAralik.setEnabled(false);
             stopControl=true;
             if(WEBSITE_REFRESH_INTERVAL > 0){
@@ -716,12 +1008,315 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    private void saveIslemciDataToMSSQL(String islemciAdi) {
+
+        //ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.INTERNET}, PackageManager.PERMISSION_GRANTED);
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+        try {
+            try {
+                Class.forName(Classes);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            try {
+                connection = DriverManager.getConnection(url,username,password);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            String insertQuery = "INSERT INTO TBL_ISLEMCI (Islemci) VALUES (?)";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
+                preparedStatement.setString(1, islemciAdi);
+                preparedStatement.executeUpdate();
+                // Prosedür başarıyla çağrıldı
+                Toast.makeText(this, "VERİLER GÖNDERİLDİ", Toast.LENGTH_SHORT);
+            } catch (SQLException e) {
+                System.out.println("SQL Server Hatası");
+                e.printStackTrace();
+            }
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                connection = null;
+            }
+        }
+    }
+
+
+    private void saveUrunDataToMSSQL(String urunAdi) {
+
+        //ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.INTERNET}, PackageManager.PERMISSION_GRANTED);
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+        try {
+            try {
+                Class.forName(Classes);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            try {
+                connection = DriverManager.getConnection(url,username,password);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            String insertQuery = "INSERT INTO TBL_URUN (Urun) VALUES (?)";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
+                preparedStatement.setString(1, urunAdi);
+                preparedStatement.executeUpdate();
+                // Prosedür başarıyla çağrıldı
+                Toast.makeText(this, "VERİLER GÖNDERİLDİ", Toast.LENGTH_SHORT);
+            } catch (SQLException e) {
+                System.out.println("SQL Server Hatası");
+                e.printStackTrace();
+            }
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                connection = null;
+            }
+        }
+    }
+
+
+    private List<String> getIslemciFromMSSQL() {
+        List<String> islemciList = new ArrayList<>();
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
+        try {
+            Class.forName(Classes);
+            connection = DriverManager.getConnection(url, username, password);
+
+            try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM TBL_ISLEMCI");
+                 ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String islemciAdi = resultSet.getString("Islemci");
+                    islemciList.add(islemciAdi);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                connection = null;
+            }
+        }
+
+        return islemciList;
+    }
+    private List<String> getUrunFromMSSQL() {
+        List<String> urunList = new ArrayList<>();
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
+        try {
+            Class.forName(Classes);
+            connection = DriverManager.getConnection(url, username, password);
+
+            try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM TBL_URUN");
+                 ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String urunAdi = resultSet.getString("Urun");
+                    urunList.add(urunAdi);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                connection = null;
+            }
+        }
+
+        return urunList;
+    }
+
+
+
+
+
+    private void getDataFromMSSQL() {
+
+        //ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.INTERNET}, PackageManager.PERMISSION_GRANTED);
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+        try {
+            try {
+                Class.forName(Classes);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            try {
+                connection = DriverManager.getConnection(url,username,password);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            try (PreparedStatement statement1 = connection.prepareStatement("SELECT TOP 1 * FROM TBL_TEST ORDER BY ID DESC");
+                 ResultSet resultSet1 = statement1.executeQuery()) {
+                if (resultSet1.next()) {
+                    float kalibrasyon = resultSet1.getFloat("Kalibrasyon");
+                    editTextCalibration.setText(String.valueOf(kalibrasyon));
+                    float histerisiz_poz = resultSet1.getFloat("Histerisiz_Pozitif");
+                    histerisizPozitifValue=histerisiz_poz;
+                    float histerisiz_neg = resultSet1.getFloat("Histerisiz_Negatif");
+                    histerisizNegatifValue=histerisiz_neg;
+                    String heat_cool = resultSet1.getString("Heat_Cool");
+                    if(heat_cool.equals("Heat")){
+                        radioButtonHeat.setSelected(true);
+                        radioButtonCool.setSelected(false);
+                    }
+                    else if(heat_cool.equals("Cool")){
+                        radioButtonCool.setSelected(true);
+                        radioButtonHeat.setSelected(false);
+                    }
+                    String fonksiyon = resultSet1.getString("Fonksiyon");
+                    if(fonksiyon.equals("TPI")){
+                        spinnerFunction.setSelection(0);
+                    }
+                    else if(fonksiyon.equals("Modülasyon")||fonksiyon.equals("Modulasyon")){
+                        spinnerFunction.setSelection(1);
+                    }
+                    else if(fonksiyon.equals("ON/OFF")){
+                        spinnerFunction.setSelection(2);
+                    }
+                    else if(fonksiyon.equals("Akıllı")||fonksiyon.equals("Akilli")){
+                        spinnerFunction.setSelection(3);
+                    }
+                    String urun = resultSet1.getString("Urun");
+                    //editTextProduct.setText(urun); //TODO İLK BAŞTA NASIL GELECEK O BELİRLENMELİ
+                    int urunIndex = -1;
+                    for (int i = 0; i < urunList.size(); i++) {
+                        if (urunList.get(i).equals(urun)) {
+                            urunIndex = i;
+                            break;
+                        }
+                    }
+                    if (urunIndex != -1) {
+                        urunSpinner.setSelection(urunIndex);
+                    }
+                    String islemci = resultSet1.getString("Islemci");
+                    int islemciIndex = -1;
+                    for (int i = 0; i < islemciList.size(); i++) {
+                        if (islemciList.get(i).equals(islemci)) {
+                            islemciIndex = i;
+                            break;
+                        }
+                    }
+                    if (islemciIndex != -1) {
+                        islemciSpinner.setSelection(islemciIndex);
+                    }
+
+
+
+
+
+
+                    String tip = resultSet1.getString("Tip");
+                    if(tip.equals("Kablolu")){
+                        spinnerTip.setSelection(0);
+                    }
+                    else if(tip.equals("Kablosuz")){
+                        spinnerTip.setSelection(1);
+                    }
+                    else if(tip.equals("Wifi")){
+                        spinnerTip.setSelection(2);
+                    }
+
+
+                    Date baslama = resultSet1.getTimestamp("Baslama_Zamani");
+                    if(baslama!=null){
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy 'Saat:' HH:mm");
+                        String formattedDate = dateFormat.format(baslama);
+                        TextView textViewStartTime = findViewById(R.id.textViewStartTime);
+                        textViewStartTime.append(": "+formattedDate);
+
+                        String tempbaslangic=textViewStartTime.getText().toString().replace("Başlangıç Zamanı: ", "");
+                        tempbaslangic=tempbaslangic.replace("Saat: ", "");
+
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+                        baslangicDate = sdf.parse(tempbaslangic);
+                    }
+
+
+
+                    Date bitis = resultSet1.getTimestamp("Bitis_Zamani");
+                    if(bitis!=null){
+                        SimpleDateFormat dateFormat2 = new SimpleDateFormat("dd/MM/yyyy 'Saat:' HH:mm");
+                        String formattedDate2 = dateFormat2.format(bitis);
+                        TextView textViewEndTime = findViewById(R.id.textViewEndTime);
+                        textViewEndTime.append(": "+formattedDate2);
+
+                        String tempbitis=textViewEndTime.getText().toString().replace("Bitiş Zamanı: ", "");
+                        tempbitis=tempbitis.replace("Saat: ", "");
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+                        bitisDate = sdf.parse(tempbitis);
+
+
+
+                    }
+
+
+                    String aralik = resultSet1.getString("Aralik");
+                    editTextAralik.setText(aralik);
+
+
+                    int lastPrimaryKey1 = resultSet1.getInt("ID");
+                    insertedID=lastPrimaryKey1;
+
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                connection = null;
+            }
+        }
+    }
+
+
+
+
 
 
     private void saveTcpDataToMSSQL(String roomTemp, String setTemp, String batteryLevel, String comfortMode, String programMode, String ecoMode, String minute, String hour, String weekday, String activeProgram, String lockStatus, String segmentStatus, String systemOnOff, String wifiStatus, String detectStatus, String tempGelen) {
 
 
-        ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.INTERNET}, PackageManager.PERMISSION_GRANTED);
+        //ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.INTERNET}, PackageManager.PERMISSION_GRANTED);
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -802,9 +1397,9 @@ public class MainActivity extends AppCompatActivity {
 
     private int insertedID;
 
-    private void saveDataToMSSQL(float calibrationValue, float pozitifValue, float negatifValue, String heatCoolValue, String functionValue, String productValue, String islemciValue, String tipValue, Date baslamaZamani, Date bitisZamani, int aralik) {
+    private void saveDataToMSSQL(float calibrationValue, float pozitifValue, float negatifValue, String heatCoolValue, String functionValue, String productValue, String islemciValue, String tipValue, Date baslamaZamani, Date bitisZamani, int aralik, String aralikBirimi) {
 
-        ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.INTERNET}, PackageManager.PERMISSION_GRANTED);
+        //ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.INTERNET}, PackageManager.PERMISSION_GRANTED);
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -819,13 +1414,14 @@ public class MainActivity extends AppCompatActivity {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-            String insertProcedure = "{call InsertData(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+            String insertProcedure = "{call InsertData(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
-            java.util.Date utilDateBaslangic = baslamaZamani;
-            java.sql.Date sqlDateBaslangic = new java.sql.Date(utilDateBaslangic.getTime());
 
-            java.util.Date utilDateBitis = bitisZamani;
-            java.sql.Date sqlDateBitis = new java.sql.Date(utilDateBitis.getTime());
+
+
+
+
+
 
 
 
@@ -840,9 +1436,25 @@ public class MainActivity extends AppCompatActivity {
                 callableStatement.setString(6, productValue);
                 callableStatement.setString(7, islemciValue);
                 callableStatement.setString(8, tipValue);
-                callableStatement.setDate(9, sqlDateBaslangic);
-                callableStatement.setDate(10, sqlDateBitis);
+                if(baslamaZamani!=null){
+                    java.util.Date utilDate = baslamaZamani;
+                    java.sql.Timestamp sqlTS = new java.sql.Timestamp(utilDate.getTime());
+                    callableStatement.setTimestamp(9, sqlTS);
+                }
+                else{
+                    callableStatement.setObject(9, null);
+                }
+                if(bitisZamani!=null){
+
+                    java.util.Date utilDate2 = bitisZamani;
+                    java.sql.Timestamp sqlTS2 = new java.sql.Timestamp(utilDate2.getTime());
+                    callableStatement.setTimestamp(10, sqlTS2);
+                }
+                else{
+                    callableStatement.setObject(10, null);
+                }
                 callableStatement.setInt(11, aralik);
+                callableStatement.setString(12,aralikBirimi);
                 //callableStatement.registerOutParameter(12, Types.INTEGER);
 
                 callableStatement.execute();
@@ -900,6 +1512,7 @@ public class MainActivity extends AppCompatActivity {
                 if (isStartTime) {
                     TextView textViewStartTime = findViewById(R.id.textViewStartTime);
                     textViewStartTime.append(" Saat: " + selectedTime);
+
 
                     try {
                         String tempbaslangic=textViewStartTime.getText().toString().replace("Başlangıç Zamanı: ", "");
