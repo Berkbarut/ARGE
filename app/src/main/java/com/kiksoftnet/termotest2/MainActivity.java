@@ -48,6 +48,11 @@ import com.hoho.android.usbserial.driver.SerialTerminalFragment;
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -73,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
     private Button buttonIncreaseCalibration;
     double calibrationValue = 0;
 
-
+    private Handler UIHandler = new Handler();
     private EditText editTextPozitif;
     private Button buttonDecreasePozitif;
     private Button buttonIncreasePozitif;
@@ -87,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
     private RadioGroup radioGroupHeatCool;
     private RadioButton radioButtonHeat;
     private RadioButton radioButtonCool;
-
+    private Terminal terminal;
     private Spinner spinnerFunction;
     private EditText editTextProduct;
     private EditText editTextIslemci;
@@ -136,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
     String islemciString="";
     String tipString="Kablolu";
     String aralikBirimString = "sn";
-    private TCPReceiver tcpReceiver;
+   // private TCPReceiver tcpReceiver;
     private String receivedData;
     private TextView olculenSic;
     private TextView sicaklikTest;
@@ -158,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        terminal=new Terminal();
         // Kalibrasyon
         editTextCalibration = findViewById(R.id.editTextCalibration);
         buttonDecreaseCalibration = findViewById(R.id.buttonDecreaseCalibration);
@@ -220,6 +225,8 @@ public class MainActivity extends AppCompatActivity {
         textViewVersionCheck.setText(ValueHelper.version);
 
 
+        kabloluTestBaglan();
+        serialTerminalFragment.connect();
 
         getLists();
 
@@ -585,7 +592,8 @@ public class MainActivity extends AppCompatActivity {
         webView2 = findViewById(R.id.webView2);
 
         configureWebView();
-
+        webView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+        webView2.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
        // loadWebsite();
 //
 //        websiteRefreshTimer = new Timer();
@@ -674,7 +682,8 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
+      //  editTextAralik.setText("10");
+       // startRefreshTimer();
     }
 
     private void showInputDialogUrun() {
@@ -710,6 +719,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         builder.show();
+
     }
 
     private void showInputDialogIslemci() {
@@ -797,7 +807,8 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-   public static boolean stopControl=false;
+    public TCPCommunicator tcpCommunicator;
+    public static boolean stopControl=false;
 
     private void startRefreshTimer() {
         if(!editTextAralik.getText().toString().equals("")){
@@ -809,6 +820,12 @@ public class MainActivity extends AppCompatActivity {
             editTextAralik.setEnabled(false);
             stopControl=true;
             if(WEBSITE_REFRESH_INTERVAL > 0){
+                tcpCommunicator = new TCPCommunicator(); //.getInstance();
+
+
+                String testcihaziip = "192.168.2.245";
+                System.out.println(testcihaziip);
+                tcpCommunicator.init(testcihaziip, 9876, terminal);
                 websiteRefreshTimer = new Timer();
                 websiteRefreshTimer.scheduleAtFixedRate(new TimerTask() {
                     @Override
@@ -818,14 +835,10 @@ public class MainActivity extends AppCompatActivity {
                             public void run() {
                                 Log.d("KAMERA: ", "YENİLENDİ");
 
-                                readSerialData();
+                                //readSerialData();
 
 
                                 Log.d("SERİ DATA: "," "+tempGelen);
-
-                                loadWebsite();
-
-                                new TCPReceiver(SERVER_IP, SERVER_PORT, MainActivity.this).execute();
 
 
 
@@ -839,10 +852,76 @@ public class MainActivity extends AppCompatActivity {
                                         //sicaklikTest.setTextColor(Color.parseColor("#FF0000"));
                                     }
                                     olculenSic.setText(tempDeger);
+                                    terminal.setTempgelen(tempDeger);
                                     //sicaklikTest.setVisibility(View.VISIBLE);
                                     //olculenSic.setVisibility(View.VISIBLE);
 
                                 }
+
+
+                                if(!tcpCommunicator.isConnected()){
+                                    System.out.println("TCP YENİDEN BAĞLANMAYA ÇALIŞILIYOR");
+                                    tcpCommunicator = new TCPCommunicator();
+                                    tcpCommunicator.init(testcihaziip, 9876, terminal);
+                                    System.out.println("TCP YENİDEN BAĞLANMAYA ÇALIŞILIYOR");
+                                }
+
+                                tcpCommunicator.writeToSocket("m", UIHandler, getApplicationContext(), terminal);
+
+
+
+
+                                //new TCPReceiver(SERVER_IP, SERVER_PORT, MainActivity.this).execute();
+
+//                                try {
+//                                    Socket socket = new Socket("192.168.2.245", 9876); // Sunucu IP ve portunu buraya ekleyin
+//                                    PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+//                                    BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+//                                    System.out.println("Bağlandı");
+//                                    boolean isRecieved = false;
+//
+//
+//                                    String receivedData="";
+//
+//                                        out.print('m');
+//                                        out.flush();
+//                                        // Sunucudan gelen veriyi al
+//
+//                                            System.out.println("in readyyyyy");
+//                                            // Sunucudan gelen veriyi al
+//                                            int kontrol=0;
+//                                            while(true){
+//                                                receivedData += in.readLine();
+//                                                if(receivedData.contains("254")){
+//                                                    break;
+//                                                }
+//                                                kontrol++;
+//                                                if (kontrol>100)
+//                                                    break;
+//                                            }
+//                                            System.out.println("Veri geldi:"+receivedData);
+//                                            //Log.d("TcpReceiver", "Alınan Veri: " + receivedData);
+//
+//                                            if(receivedData!=null){
+//                                                handleReceivedData(receivedData);
+//                                                System.out.println("Veri işlendi");
+//                                                receivedData="";
+//                                            }
+//
+//
+//
+//                                    out.close();
+//                                    in.close();
+//                                    socket.close();
+//                                    System.out.println("Bağlantı kapatıldı");
+//                                } catch (IOException e) {
+//                                    Log.e("TcpReceiver", "Hata: " + e.getMessage());
+//
+//                                }
+                                loadWebsite();
+                                System.gc();
+                                Runtime.getRuntime().gc();
+
 
                             }
                         });
@@ -895,44 +974,7 @@ public class MainActivity extends AppCompatActivity {
     boolean roomTempControl=true;
 
 
-    public void handleReceivedData(String receivedDataString) {
-        Log.d("MainActivity", "Gelen Veri: " + receivedDataString);
 
-        StringBuilder receivedData = new StringBuilder(receivedDataString);
-
-        String roomTemp = getSubstringBetween(receivedData, "86", "254");
-        if(roomTemp.length()>2){
-            String roomTempValue = roomTemp.substring(0, roomTemp.length() - 1) + "." + roomTemp.charAt(roomTemp.length() - 1);
-            if(!roomTempValue.equals(tempGelen)){
-                roomTempControl=false;
-            }
-            else
-                roomTempControl=true;
-        }
-
-        String setTemp = getSubstringBetween(receivedData, "72", "254");
-        String batteryLevel = getSubstringBetween(receivedData, "84", "254");
-        String comfortMode = getSubstringBetween(receivedData, "96", "254");
-        String programMode = getSubstringBetween(receivedData, "112", "254");
-        String ecoMode = getSubstringBetween(receivedData, "92", "254");
-        String minute = getSubstringBetween(receivedData, "184", "254");
-        String hour = getSubstringBetween(receivedData, "147", "254");
-        String weekday = getSubstringBetween(receivedData, "192", "254");
-        String activeProgram = getSubstringBetween(receivedData, "198", "254");
-        String lockStatus = getSubstringBetween(receivedData, "220", "254");
-        String segmentStatus = getSubstringBetween(receivedData, "246", "254");
-        String systemOnOff = getSubstringBetween(receivedData, "126", "254");
-        String wifiStatus = getSubstringBetween(receivedData, "134", "254");
-        String detectStatus = getSubstringBetween(receivedData, "154", "254");
-
-
-
-
-        saveTcpDataToMSSQL(roomTemp,setTemp,batteryLevel,comfortMode,programMode,ecoMode,minute,hour,weekday,activeProgram,lockStatus,segmentStatus, systemOnOff, wifiStatus,detectStatus,tempGelen);
-
-
-
-    }
 //    private String getSubstringBetween(String original, String start, String end) {
 //        int startIndex = original.indexOf(start);
 //        int endIndex = original.indexOf(end, startIndex + start.length());
@@ -944,40 +986,24 @@ public class MainActivity extends AppCompatActivity {
 //        }
 //    }
 
-    private String getSubstringBetween(StringBuilder original, String start, String end) {
-        int startIndex = original.indexOf(start);
-        int endIndex = original.indexOf(end, startIndex + start.length());
 
-        if (startIndex != -1 && endIndex != -1 && startIndex + start.length() < endIndex) {
-            String result = original.substring(startIndex + start.length(), endIndex);
-            original.delete(startIndex, endIndex + end.length()); // Alt dizgiyi temizle
-            return result;
-        }else if(startIndex + start.length() >= endIndex) {
-            return end;
-        }
-        else {
-            return "";
-        }
-    }
 
 
 
 
 
     UsbDevice device;
-    KabloluSeriBaglanti kabloluSeriBaglanti = new KabloluSeriBaglanti(this,device);
+
     SerialTerminalFragment serialTerminalFragment = new SerialTerminalFragment(this,device);
 
-    String tempGelen="0";
-    public void showReceivedData(String data){
-    tempGelen=data;
-    }
+     public String tempGelen="0";
+//    public void showReceivedData(String data){
+//    tempGelen=data;
+//    }
 
     public void readSerialData() {
-        kabloluTestBaglan();
-
-        serialTerminalFragment.connect();
         serialTerminalFragment.read();
+        //serialTerminalFragment.disconnect();
        //String seriDeger = kabloluSeriBaglanti.read();
         //return seriDeger;
     }
@@ -998,7 +1024,6 @@ public class MainActivity extends AppCompatActivity {
                     //return;
                 }
                 if (driver != null) {
-                    kabloluSeriBaglanti = new KabloluSeriBaglanti(this, device);
                     serialTerminalFragment = new SerialTerminalFragment(this,device);
                     return;
                 }
@@ -1313,89 +1338,12 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    private void saveTcpDataToMSSQL(String roomTemp, String setTemp, String batteryLevel, String comfortMode, String programMode, String ecoMode, String minute, String hour, String weekday, String activeProgram, String lockStatus, String segmentStatus, String systemOnOff, String wifiStatus, String detectStatus, String tempGelen) {
-
-
-        //ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.INTERNET}, PackageManager.PERMISSION_GRANTED);
-
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
-
-
-
-
-
-        try {
-            Class.forName(Classes);
-            connection = DriverManager.getConnection(url,username,password);
-            String insertProcedure = "{call InsertArge(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
-
-
-
-            try (PreparedStatement statement1 = connection.prepareStatement("SELECT TOP 1 ID FROM TBL_TEST ORDER BY ID DESC");
-                 ResultSet resultSet1 = statement1.executeQuery()) {
-                if (resultSet1.next()) {
-                    int lastPrimaryKey1 = resultSet1.getInt("ID");
-                    insertedID=lastPrimaryKey1;
-                }
-            }
-
-
-            try (CallableStatement callableStatement = connection.prepareCall(insertProcedure)) {
-                callableStatement.setObject(1,null );
-                callableStatement.setObject(2, null);
-                callableStatement.setFloat(3, Float.parseFloat(setTemp)/10);
-                callableStatement.setFloat(4, Float.parseFloat(roomTemp)/10);
-                callableStatement.setObject(5, null);
-                callableStatement.setObject(6, null);
-                callableStatement.setInt(7, Integer.parseInt(batteryLevel));
-                callableStatement.setInt(8, Integer.parseInt(wifiStatus));
-                callableStatement.setString(9, activeProgram);
-                callableStatement.setObject(10, null);
-                callableStatement.setInt(11, Integer.parseInt(comfortMode));
-                callableStatement.setInt(12, Integer.parseInt(programMode));
-                callableStatement.setInt(13, Integer.parseInt(ecoMode));
-                callableStatement.setInt(14, Integer.parseInt(minute));
-                callableStatement.setInt(15, Integer.parseInt(hour));
-                callableStatement.setInt(16, Integer.parseInt(weekday));
-                callableStatement.setInt(17, Integer.parseInt(lockStatus));
-                callableStatement.setInt(18, Integer.parseInt(segmentStatus));
-                callableStatement.setInt(19, Integer.parseInt(systemOnOff));
-                callableStatement.setInt(20, insertedID);
-                callableStatement.setInt(21, Integer.parseInt(detectStatus));
-
-                int equalsIndex = tempGelen.indexOf("=");
-                String tempDeger=tempGelen.substring(equalsIndex+1);
-                callableStatement.setFloat(22, Float.parseFloat(tempDeger));
-
-
-                callableStatement.execute();
-                // Prosedür başarıyla çağrıldı
-                //Toast.makeText(this, "VERİLER GÖNDERİLDİ", Toast.LENGTH_SHORT).show();
-            } catch (SQLException e) {
-                System.out.println("SQL Server Hatası");
-                e.printStackTrace();
-            }
-        } catch (SQLException e) {
-            System.out.println("SQL Server Bağlanılamadı");
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                connection = null;
-            }
-        }
-    }
 
 
 
 
     private int insertedID;
+
 
     private void saveDataToMSSQL(float calibrationValue, float pozitifValue, float negatifValue, String heatCoolValue, String functionValue, String productValue, String islemciValue, String tipValue, Date baslamaZamani, Date bitisZamani, int aralik, String aralikBirimi) {
 
@@ -1416,17 +1364,6 @@ public class MainActivity extends AppCompatActivity {
             }
             String insertProcedure = "{call InsertData(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
-
-
-
-
-
-
-
-
-
-
-
             try (CallableStatement callableStatement = connection.prepareCall(insertProcedure /*Statement.RETURN_GENERATED_KEYS*/)) {
                 callableStatement.setFloat(1, calibrationValue);
                 callableStatement.setFloat(2, pozitifValue);
@@ -1436,10 +1373,15 @@ public class MainActivity extends AppCompatActivity {
                 callableStatement.setString(6, productValue);
                 callableStatement.setString(7, islemciValue);
                 callableStatement.setString(8, tipValue);
+
+
+
+
                 if(baslamaZamani!=null){
                     java.util.Date utilDate = baslamaZamani;
                     java.sql.Timestamp sqlTS = new java.sql.Timestamp(utilDate.getTime());
                     callableStatement.setTimestamp(9, sqlTS);
+
                 }
                 else{
                     callableStatement.setObject(9, null);
@@ -1462,8 +1404,11 @@ public class MainActivity extends AppCompatActivity {
                 try (ResultSet generatedKeys = callableStatement.getGeneratedKeys()) {
                     while (generatedKeys.next()) {
                         insertedID = generatedKeys.getInt(1);
+                        terminal.setInsertedID(insertedID);
                     }
+                    generatedKeys.close();
                 }
+                callableStatement.close();
                 // Prosedür başarıyla çağrıldı
                 Toast.makeText(this, "VERİLER GÖNDERİLDİ", Toast.LENGTH_SHORT);
             } catch (SQLException e) {

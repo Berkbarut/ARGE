@@ -37,8 +37,8 @@
         android:id="@+id/textViewOlculenSıcaklıkText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="264dp"
-        android:layout_marginTop="600dp"
+        android:layout_marginStart="340dp"
+        android:layout_marginTop="652dp"
         android:background="#F5F5F5"
         android:elevation="2dp"
         android:padding="8dp"
@@ -185,8 +185,8 @@
 
     <Spinner
         android:id="@+id/editTextUrun"
-        android:layout_width="163dp"
-        android:layout_height="38dp"
+        android:layout_width="220dp"
+        android:layout_height="42dp"
         android:layout_marginStart="256dp"
         android:layout_marginTop="35dp"
         android:background="#FFFFFF"
@@ -342,7 +342,7 @@
 
     <Spinner
         android:id="@+id/editTextIslemci"
-        android:layout_width="152dp"
+        android:layout_width="220dp"
         android:layout_height="42dp"
         android:layout_marginStart="256dp"
         android:layout_marginTop="32dp"
@@ -599,7 +599,7 @@
         android:id="@+id/buttonGetInputIslemci"
         android:layout_width="51dp"
         android:layout_height="46dp"
-        android:layout_marginStart="35dp"
+        android:layout_marginStart="24dp"
         android:layout_marginTop="23dp"
         android:text="+"
         android:textSize="20dp"

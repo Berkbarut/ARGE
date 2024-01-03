@@ -196,6 +196,8 @@ public class SerialTerminalFragment  implements SerialInputOutputManager.Listene
                 byte[] buffer = new byte[8192];
                 int len = usbSerialPort.read(buffer, READ_WAIT_MILLIS);
                 receive(Arrays.copyOf(buffer, len));
+
+                buffer=null;
             } catch (IOException e) {
                 // when using read with timeout, USB bulkTransfer returns -1 on timeout _and_ errors
                 // like connection loss, so there is typically no exception thrown here on error
@@ -235,14 +237,18 @@ public class SerialTerminalFragment  implements SerialInputOutputManager.Listene
                     // Eğer eşleşme bulunursa
                     if (matcher.find()) {
                         String matchedValue = matcher.group();
-                        parentActivity.showReceivedData(matchedValue);
+                        //parentActivity.showReceivedData(matchedValue);
+                        parentActivity.tempGelen=matchedValue;
+                        Runtime.getRuntime().gc();
                         System.out.println("Eşleşen Değer: " + matchedValue);
+
                     } else {
                         //System.out.println("Hata: Beklenen desen bulunamadı.");
                     }
 
 
 
+                    data=null;
 
 
 //                    gelentmp = gelen.substring(gelen.indexOf("T") + 1);
@@ -253,7 +259,7 @@ public class SerialTerminalFragment  implements SerialInputOutputManager.Listene
                     //gelen = "";
                 }
                 else{
-                    read();
+                    //read();
                 }
 
 
