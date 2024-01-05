@@ -617,5 +617,15 @@
         app:layout_constraintStart_toEndOf="@+id/editTextUrun"
         app:layout_constraintTop_toBottomOf="@+id/editTextNegatif" />
 
+    <TextView
+        android:id="@+id/testIdText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="99dp"
+        android:layout_marginBottom="36dp"
+        android:text="TestId"
+        app:layout_constraintBottom_toTopOf="@+id/editTextCalibration"
+        app:layout_constraintStart_toEndOf="@+id/textViewVersionCheck" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

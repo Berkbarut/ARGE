@@ -59,6 +59,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -108,12 +109,15 @@ public class MainActivity extends AppCompatActivity {
     private List<String> urunList;
     private List<String> islemciList;
 
+    private int veriSayisi=0;
 
 
     private TextView textViewStartTime;
     private TextView textViewEndTime;
 
     private TextView textViewVersionCheck;
+
+    private TextView textViewTestId;
 
     private EditText editTextAralik;
 
@@ -123,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
     private Chronometer chronometer;
     private boolean isRunning = false;
     private long pauseOffset = 0;
+    private long devamSure;
 
     private TextureView textureView;
     private Button startButton;
@@ -145,6 +150,8 @@ public class MainActivity extends AppCompatActivity {
     private String receivedData;
     private TextView olculenSic;
     private TextView sicaklikTest;
+    private Button buttonReset;
+    private Button buttonSave;
 
     private static String ip = "192.168.1.223";// this is the host ip that your data base exists on you can use 10.0.2.2 for local host                                                    found on your pc. use if config for windows to find the ip if the database exists on                                                    your pc
     private static String port = "1433";// the port sql server runs on
@@ -194,8 +201,9 @@ public class MainActivity extends AppCompatActivity {
         //editTextProduct = findViewById(R.id.editTextUrun);
 
 
-        Button buttonSave = findViewById(R.id.buttonSave);
+        buttonSave = findViewById(R.id.buttonSave);
 
+        buttonReset = findViewById(R.id.buttonReset);
 
         // İşlemci
         //editTextIslemci = findViewById(R.id.editTextIslemci);
@@ -223,6 +231,8 @@ public class MainActivity extends AppCompatActivity {
         //sicaklikTest.setVisibility(View.INVISIBLE);
         textViewVersionCheck = findViewById(R.id.textViewVersionCheck);
         textViewVersionCheck.setText(ValueHelper.version);
+        textViewTestId = findViewById(R.id.testIdText);
+
 
 
         kabloluTestBaglan();
@@ -231,6 +241,12 @@ public class MainActivity extends AppCompatActivity {
         getLists();
 
         getDataFromMSSQL();
+
+        getVeriSayisiFromMSSQL();
+
+
+
+
 
         buttonDecreaseCalibration.setOnClickListener(new View.OnClickListener() { //Kalibrasyon kısmında değer girme
             @Override
@@ -511,31 +527,14 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (!isCameraStarted) {
 
+                    buttonSave.setEnabled(false);
+                    buttonReset.setEnabled(false);
+
                     isCameraStarted = true;
-                    startChronometer();
+
                     startRefreshTimer();
+                    startChronometer();
 
-
-//
-//                    websiteRefreshTimer = new Timer();
-//                    websiteRefreshTimer.scheduleAtFixedRate(new TimerTask() {
-//                        @Override
-//                        public void run() {
-//                            handler.post(new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    Log.d("KAMERA: ", "YENİLENDİ");
-//
-//                                    loadWebsite();
-//
-//                                    new TCPReceiver(SERVER_IP,SERVER_PORT,MainActivity.this).execute();
-//
-//
-//
-//                                }
-//                            });
-//                        }
-//                    }, 0, WEBSITE_REFRESH_INTERVAL);
 
                 }
             }
@@ -546,6 +545,9 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (isCameraStarted) {
                     isCameraStarted = false;
+
+
+                    buttonReset.setEnabled(true);
 
                     // TCPReceiver'ı durdur
                     pauseChronometer();
@@ -561,17 +563,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-
-
-
-
-
-
-
-
-
-
         buttonSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -581,9 +572,16 @@ public class MainActivity extends AppCompatActivity {
                 // Kullanıcının girdiği verileri al
 
                 // Verileri MSSQL veritabanına kaydet
-                saveDataToMSSQL((float)calibrationValue,(float) histerisizPozitifValue,(float)histerisizNegatifValue,heatCoolString,fonksiyonString,urunString,islemciString,tipString,baslangicDate,bitisDate,Integer.parseInt(editTextAralik.getText().toString()),aralikBirimString);
-                Toast.makeText(getApplicationContext(),"KAYDETME BAŞARILI",Toast.LENGTH_LONG).show();
-                buttonSave.setEnabled(false);
+                if(insertedID==0){
+                    saveDataToMSSQL((float)calibrationValue,(float) histerisizPozitifValue,(float)histerisizNegatifValue,heatCoolString,fonksiyonString,urunString,islemciString,tipString,baslangicDate,bitisDate,Integer.parseInt(editTextAralik.getText().toString()),aralikBirimString);
+                    Toast.makeText(getApplicationContext(),"KAYDETME BAŞARILI",Toast.LENGTH_LONG).show();
+                    buttonSave.setEnabled(false);
+                }
+                else{
+                    UpdateDataMSSQL((float)calibrationValue,(float) histerisizPozitifValue,(float)histerisizNegatifValue,heatCoolString,fonksiyonString,urunString,islemciString,tipString,baslangicDate,bitisDate,Integer.parseInt(editTextAralik.getText().toString()),aralikBirimString);
+                    Toast.makeText(getApplicationContext(),"GÜNCELLEME BAŞARILI",Toast.LENGTH_LONG).show();
+                    buttonSave.setEnabled(false);
+                }
 
             }
         });
@@ -594,33 +592,6 @@ public class MainActivity extends AppCompatActivity {
         configureWebView();
         webView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
         webView2.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
-        // loadWebsite();
-//
-//        websiteRefreshTimer = new Timer();
-//        websiteRefreshTimer.scheduleAtFixedRate(new TimerTask() {
-//            @Override
-//            public void run() {
-//                handler.post(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        Log.d("KAMERA: ", "YENİLENDİ");
-//
-//                        loadWebsite();
-//
-//                        new TCPReceiver(SERVER_IP,SERVER_PORT,MainActivity.this).execute();
-//
-//
-//
-//                    }
-//                });
-//            }
-//        }, 0, WEBSITE_REFRESH_INTERVAL);
-
-
-
-
-
-
 
         urunSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -648,14 +619,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-
-
-
-
-
-
-
         Button getInputIslemciButton = findViewById(R.id.buttonGetInputIslemci);
         getInputIslemciButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -671,26 +634,29 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-
-
-
-
-
-
-
-        Button buttonReset = findViewById(R.id.buttonReset);
         buttonReset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Uygulamayı yeniden başlatmak için Intent kullanabilirsiniz
-                Intent intent = getIntent();
-                finish();
-                startActivity(intent);
+                editTextAralik.setText("");
+                editTextCalibration.setText("0.0");
+                editTextNegatif.setText("0.0");
+                editTextPozitif.setText("0.0");
+                spinnerFunction.setSelection(0);
+                fonksiyonString=spinnerFunction.getSelectedItem().toString();
+                spinnerTip.setSelection(0);
+                tipString=spinnerTip.getSelectedItem().toString();
+                islemciSpinner.setSelection(0);
+                islemciString=islemciSpinner.getSelectedItem().toString();
+                urunSpinner.setSelection(0);
+                urunString=urunSpinner.getSelectedItem().toString();
+                insertedID=0;
+                devamSure=0;
+                textViewTestId.setText("Test ID: "+insertedID);
             }
         });
           //editTextAralik.setText("10");
          //startRefreshTimer();
+        buttonSave.setEnabled(false);
     }
 
     private void showInputDialogUrun() {
@@ -764,7 +730,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void startChronometer() {
         if (!isRunning) {
-            chronometer.setBase(SystemClock.elapsedRealtime() - pauseOffset);
+            devamSure = (veriSayisi+1)*WEBSITE_REFRESH_INTERVAL;
+            chronometer.setBase(SystemClock.elapsedRealtime() - devamSure);
+//          chronometer.setBase(SystemClock.elapsedRealtime() - pauseOffset);
             chronometer.start();
             isRunning = true;
         }
@@ -773,7 +741,7 @@ public class MainActivity extends AppCompatActivity {
     private void pauseChronometer() {
         if (isRunning) {
             chronometer.stop();
-            pauseOffset = SystemClock.elapsedRealtime() - chronometer.getBase();
+            devamSure = SystemClock.elapsedRealtime() - chronometer.getBase();
             isRunning = false;
         }
     }
@@ -886,64 +854,6 @@ public class MainActivity extends AppCompatActivity {
 
                 websiteRefreshThread.start();
 
-
-
-
-
-
-
-
-
-                /*websiteRefreshTimer = new Timer();
-                websiteRefreshTimer.scheduleAtFixedRate(new TimerTask() {
-                    @Override
-                    public void run() {
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                Log.d("KAMERA: ", "YENİLENDİ");
-
-                                //readSerialData();
-
-
-                                Log.d("SERİ DATA: "," "+tempGelen);
-
-                                System.out.println("Handler çalışıyor:"+WEBSITE_REFRESH_INTERVAL);
-
-                                if(!tempGelen.equals("0")){
-
-                                    int equalsIndex = tempGelen.indexOf("=");
-                                    String tempDeger=tempGelen.substring(equalsIndex+1);
-
-//                                    if(!roomTempControl){
-//                                        olculenSic.setTextColor(Color.parseColor("#FF0000"));
-//                                        //sicaklikTest.setTextColor(Color.parseColor("#FF0000"));
-//                                    }
-                                    //olculenSic.setText(tempDeger);
-                                    terminal.setTempgelen(tempDeger);
-                                    //sicaklikTest.setVisibility(View.VISIBLE);
-                                    //olculenSic.setVisibility(View.VISIBLE);
-
-                                }
-                                if(!tcpCommunicator.isConnected()){
-                                    System.out.println("TCP YENİDEN BAĞLANMAYA ÇALIŞILIYOR");
-                                    tcpCommunicator = new TCPCommunicator();
-                                    tcpCommunicator.init(testcihaziip, 9876, terminal);
-                                    System.out.println("TCP YENİDEN BAĞLANMAYA ÇALIŞILIYOR");
-                                }else{
-                                    tcpCommunicator.writeToSocket("m", UIHandler, getApplicationContext(), terminal);
-                                }
-
-                                loadWebsite();
-                                System.gc();
-                                Runtime.getRuntime().gc();
-
-
-                            }
-                        });
-                    }
-                }, 0, WEBSITE_REFRESH_INTERVAL);*/
-
                 startButton.setEnabled(false);
                 stopButton.setEnabled(true);
             }
@@ -993,17 +903,6 @@ public class MainActivity extends AppCompatActivity {
     boolean roomTempControl=true;
 
 
-
-//    private String getSubstringBetween(String original, String start, String end) {
-//        int startIndex = original.indexOf(start);
-//        int endIndex = original.indexOf(end, startIndex + start.length());
-//
-//        if (startIndex != -1 && endIndex != -1) {
-//            return original.substring(startIndex + start.length(), endIndex);
-//        } else {
-//            return "";
-//        }
-//    }
 
 
 
@@ -1128,6 +1027,48 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+    private int insertedID=0;
+
+
+    private int getVeriSayisiFromMSSQL() {
+
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
+        try {
+            Class.forName(Classes);
+            connection = DriverManager.getConnection(url, username, password);
+            String veriSayisiQuery = "SELECT COUNT(*) AS VeriSayisi FROM TBL_Arge WHERE Test_ID = " + insertedID;
+
+            try (Statement statement = connection.createStatement();
+                 ResultSet resultSet = statement.executeQuery(veriSayisiQuery)) {
+                while (resultSet.next()) {
+                    veriSayisi=resultSet.getInt("VeriSayisi");
+                }
+                statement.close();
+                resultSet.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                connection = null;
+            }
+        }
+        return veriSayisi;
+    }
+
+
+
 
 
     private List<String> getIslemciFromMSSQL() {
@@ -1340,6 +1281,7 @@ public class MainActivity extends AppCompatActivity {
                     insertedID=lastPrimaryKey1;
                     terminal.setInsertedID(insertedID);
 
+                    textViewTestId.setText("Test ID: "+insertedID);
 
                 }
 
@@ -1373,7 +1315,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    private int insertedID;
 
 
     private void saveDataToMSSQL(float calibrationValue, float pozitifValue, float negatifValue, String heatCoolValue, String functionValue, String productValue, String islemciValue, String tipValue, Date baslamaZamani, Date bitisZamani, int aralik, String aralikBirimi) {
@@ -1432,13 +1373,113 @@ public class MainActivity extends AppCompatActivity {
 
                 callableStatement.execute();
 
-                try (ResultSet generatedKeys = callableStatement.getGeneratedKeys()) {
-                    while (generatedKeys.next()) {
-                        insertedID = generatedKeys.getInt(1);
-                        terminal.setInsertedID(insertedID);
-                    }
-                    generatedKeys.close();
+
+
+                try (PreparedStatement statement1 = connection.prepareStatement("SELECT TOP 1 ID FROM TBL_TEST ORDER BY ID DESC");
+                 ResultSet resultSet1 = statement1.executeQuery()) {
+                if (resultSet1.next()) {
+                    int lastPrimaryKey1 = resultSet1.getInt("ID");
+                    insertedID=lastPrimaryKey1;
+                    terminal.setInsertedID(insertedID);
+                    textViewTestId.setText("Test ID: "+insertedID);
                 }
+            }
+
+
+
+
+//                try (ResultSet generatedKeys = callableStatement.getGeneratedKeys()) {
+//                    while (generatedKeys.next()) {
+//
+//                        insertedID = generatedKeys.getInt(1);
+//                        terminal.setInsertedID(insertedID);
+//                        System.out.println("INSERTED ID"+insertedID);
+//                        textViewTestId.setText(insertedID+"");
+//                    }
+//                    generatedKeys.close();
+//                }
+                callableStatement.close();
+                // Prosedür başarıyla çağrıldı
+                Toast.makeText(this, "VERİLER GÖNDERİLDİ", Toast.LENGTH_SHORT);
+            } catch (SQLException e) {
+                System.out.println("SQL Server Hatası");
+                e.printStackTrace();
+            }
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                connection = null;
+            }
+        }
+    }
+    private void UpdateDataMSSQL(float calibrationValue, float pozitifValue, float negatifValue, String heatCoolValue, String functionValue, String productValue, String islemciValue, String tipValue, Date baslamaZamani, Date bitisZamani, int aralik, String aralikBirimi) {
+
+        //ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.INTERNET}, PackageManager.PERMISSION_GRANTED);
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+        try {
+            try {
+                Class.forName(Classes);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            try {
+                connection = DriverManager.getConnection(url,username,password);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            String updateQuery = "{call UpdateTestData(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+
+
+            try (CallableStatement callableStatement = connection.prepareCall(updateQuery /*Statement.RETURN_GENERATED_KEYS*/)) {
+                callableStatement.setFloat(1, calibrationValue);
+                callableStatement.setFloat(2, pozitifValue);
+                callableStatement.setFloat(3, negatifValue);
+                callableStatement.setString(4, heatCoolValue);
+                callableStatement.setString(5, functionValue);
+                callableStatement.setString(6, productValue);
+                callableStatement.setString(7, islemciValue);
+                callableStatement.setString(8, tipValue);
+
+
+
+
+                if(baslamaZamani!=null){
+                    java.util.Date utilDate = baslamaZamani;
+                    java.sql.Timestamp sqlTS = new java.sql.Timestamp(utilDate.getTime());
+                    callableStatement.setTimestamp(9, sqlTS);
+
+                }
+                else{
+                    callableStatement.setObject(9, null);
+                }
+                if(bitisZamani!=null){
+
+                    java.util.Date utilDate2 = bitisZamani;
+                    java.sql.Timestamp sqlTS2 = new java.sql.Timestamp(utilDate2.getTime());
+                    callableStatement.setTimestamp(10, sqlTS2);
+                }
+                else{
+                    callableStatement.setObject(10, null);
+                }
+                callableStatement.setInt(11, aralik);
+                callableStatement.setString(12,aralikBirimi);
+                callableStatement.setInt(13,insertedID);
+                //callableStatement.registerOutParameter(12, Types.INTEGER);
+
+                callableStatement.execute();
+
+//                try (ResultSet generatedKeys = callableStatement.getGeneratedKeys()) {
+//                    while (generatedKeys.next()) {
+//                        insertedID = generatedKeys.getInt(1);
+//                        terminal.setInsertedID(insertedID);
+//                    }
+//                    generatedKeys.close();
+//                }
                 callableStatement.close();
                 // Prosedür başarıyla çağrıldı
                 Toast.makeText(this, "VERİLER GÖNDERİLDİ", Toast.LENGTH_SHORT);
@@ -1563,8 +1604,6 @@ public class MainActivity extends AppCompatActivity {
 
         popupMenu.show();
     }
-
-
 
     @Override
     protected void onDestroy() {
