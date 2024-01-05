@@ -97,7 +97,7 @@ public class SerialTerminalFragment  implements SerialInputOutputManager.Listene
         try {
             mainLooper.post(() -> {
 
-                disconnect();
+                //disconnect();
             });
         } catch (Exception ex) {
             //status("onRunError");
@@ -118,6 +118,7 @@ public class SerialTerminalFragment  implements SerialInputOutputManager.Listene
                 usbPermission = UsbPermission.Requested;
                 PendingIntent usbPermissionIntent = PendingIntent.getBroadcast(parentActivity, 0, new Intent(INTENT_ACTION_GRANT_USB), 0);
                 usbManager.requestPermission(driver.getDevice(), usbPermissionIntent);
+                connected=true;
                 return;
             }
             if (usbConnection == null) {
@@ -164,27 +165,7 @@ public class SerialTerminalFragment  implements SerialInputOutputManager.Listene
         // status("Tartı bağlantısı kesildi");
     }
 
-    private void send(String str) {
-        try {
-            if (!connected) {
-                Toast.makeText(parentActivity, "not connected", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            try {
-                byte[] data = (str + '\n').getBytes();
-                SpannableStringBuilder spn = new SpannableStringBuilder();
-                spn.append("send " + data.length + " bytes\n");
-                spn.append(HexDump.dumpHexString(data)).append("\n");
-                //spn.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.colorSendText)), 0, spn.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                status(spn.toString());
-                usbSerialPort.write(data, WRITE_WAIT_MILLIS);
-            } catch (Exception e) {
-                onRunError(e);
-            }
-        } catch (Exception ex) {
-            status("sendError");
-        }
-    }
+
 
     public void read() {
         try {
@@ -194,10 +175,14 @@ public class SerialTerminalFragment  implements SerialInputOutputManager.Listene
             }
             try {
                 byte[] buffer = new byte[8192];
-                int len = usbSerialPort.read(buffer, READ_WAIT_MILLIS);
-                receive(Arrays.copyOf(buffer, len));
+                int len = usbSerialPort.read(buffer, parentActivity.WEBSITE_REFRESH_INTERVAL);
 
-                buffer=null;
+                if(len>0){
+                    byte[] receivedData=Arrays.copyOf(buffer, len);
+                    receive(receivedData);
+                }
+
+                //buffer=null;
             } catch (IOException e) {
                 // when using read with timeout, USB bulkTransfer returns -1 on timeout _and_ errors
                 // like connection loss, so there is typically no exception thrown here on error
@@ -219,12 +204,13 @@ public class SerialTerminalFragment  implements SerialInputOutputManager.Listene
                     spn.append(HexDump.dumpHexString(data)).append("\n");
                 String gelentmp = new String(data);
                 gelen = gelen + gelentmp;
+                gelentmp=null;
                 //Log.d("TEMP GELEN : ", gelen);
 
 
 
 
-                if (gelen.indexOf("T",gelen.indexOf("T")+1) != -1) {
+                while (gelen.indexOf("T",gelen.indexOf("T")+1) != -1) {
 
                     String pattern = "\\w=\\d+\\.\\d+";
 
@@ -239,8 +225,15 @@ public class SerialTerminalFragment  implements SerialInputOutputManager.Listene
                         String matchedValue = matcher.group();
                         //parentActivity.showReceivedData(matchedValue);
                         parentActivity.tempGelen=matchedValue;
-                        Runtime.getRuntime().gc();
-                        System.out.println("Eşleşen Değer: " + matchedValue);
+
+                        gelen="";
+                        data=null;
+                        spn.clear();
+                        spn=null;
+
+                        //System.out.println("Eşleşen Değer: " + matchedValue);
+                        //Runtime.getRuntime().gc();
+                        break;
 
                     } else {
                         //System.out.println("Hata: Beklenen desen bulunamadı.");
@@ -248,18 +241,9 @@ public class SerialTerminalFragment  implements SerialInputOutputManager.Listene
 
 
 
-                    data=null;
 
 
-//                    gelentmp = gelen.substring(gelen.indexOf("T") + 1);
-//                    gelentmp=gelentmp.substring(0,gelen.indexOf("T"));
-//                    Log.d("RECIVE GELEN: ",gelentmp);
-                    //parentActivity.showReceivedData(gelentmp);
-                    // TODO MAINDEN ÇEK parentActivity.
-                    //gelen = "";
-                }
-                else{
-                    //read();
+
                 }
 
 

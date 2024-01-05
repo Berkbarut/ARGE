@@ -70,6 +70,7 @@ public class Terminal {
 
         saveTcpDataToMSSQL(roomTemp,setTemp,batteryLevel,comfortMode,programMode,ecoMode,minute,hour,weekday,activeProgram,lockStatus,segmentStatus, systemOnOff, wifiStatus,detectStatus,tempGelen);
 
+        receivedData=null;
 
 
     }
@@ -108,13 +109,13 @@ public class Terminal {
 
 
 
-            try (PreparedStatement statement1 = connection.prepareStatement("SELECT TOP 1 ID FROM TBL_TEST ORDER BY ID DESC");
-                 ResultSet resultSet1 = statement1.executeQuery()) {
-                if (resultSet1.next()) {
-                    int lastPrimaryKey1 = resultSet1.getInt("ID");
-                    insertedID=lastPrimaryKey1;
-                }
-            }
+//            try (PreparedStatement statement1 = connection.prepareStatement("SELECT TOP 1 ID FROM TBL_TEST ORDER BY ID DESC");
+//                 ResultSet resultSet1 = statement1.executeQuery()) {
+//                if (resultSet1.next()) {
+//                    int lastPrimaryKey1 = resultSet1.getInt("ID");
+//                    insertedID=lastPrimaryKey1;
+//                }
+//            }
 
 
             try (CallableStatement callableStatement = connection.prepareCall(insertProcedure)) {
@@ -140,9 +141,14 @@ public class Terminal {
                 callableStatement.setInt(20, insertedID);
                 callableStatement.setInt(21, Integer.parseInt(detectStatus));
 
-                int equalsIndex = tempGelen.indexOf("=");
-                String tempDeger=tempGelen.substring(equalsIndex+1);
-                callableStatement.setFloat(22, Float.parseFloat(tempDeger));
+                if(tempGelen!=null&&tempGelen.length()>3){
+                    int equalsIndex = tempGelen.indexOf("=");
+                    String tempDeger=tempGelen.substring(equalsIndex+1);
+                    callableStatement.setFloat(22, Float.parseFloat(tempDeger));
+                }
+                else
+                    callableStatement.setObject(22, null);
+
 
 
                 callableStatement.execute();

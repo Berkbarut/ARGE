@@ -35,7 +35,6 @@ public class TCPCommunicator {
     private String komut="";
     private String gelenveri="";
     //private TCPListener tcpListener;
-    private  double enyuksekdeger=-10000;
     public TCPCommunicator()
     {
         //    allListeners = new ArrayList<TCPListener>();
@@ -62,9 +61,9 @@ public class TCPCommunicator {
             //System.out.println("Analiz cihazına bağlanılıyor");
             try {
                 s = new Socket();
-                s.setSoTimeout(20000);
+                s.setSoTimeout(5000);
                 System.out.println(getServerHost());
-                s.connect(new InetSocketAddress(getServerHost(), getServerPort()), 20000);
+                s.connect(new InetSocketAddress(getServerHost(), getServerPort()), 5000);
             }catch(Exception ex)
             {
 
@@ -132,8 +131,44 @@ public class TCPCommunicator {
                         out.flush();
                         System.out.println(outMsg +" gönderildi");
                         //if (task==null)
-                        task = new InitTCPClientTask();
-                        task.execute(new Void[0]);
+
+
+                    String inMsg="";
+                    while(true)
+                    {
+
+                        boolean end = false;
+                        while(!end) {
+                            bagli=true;
+                            int currentBytesRead = in.read();
+                            inMsg=inMsg+""+(char)currentBytesRead;
+
+
+                            if(inMsg.contains("\\n")) {
+                                end = true;
+                            }
+                        }
+
+
+                        if(inMsg!=null)
+                        {
+
+                            gelenveri=gelenveri+inMsg;
+                            inMsg="";
+                            System.out.println(gelenveri +" geldi");
+                            if (gelenveri.indexOf("254")!=-1) {
+                                System.out.println("254 geldi");
+                                terminal.handleReceivedData(gelenveri);
+                                gelenveri="";
+                                break;
+                            }
+
+
+                        }
+                    }
+
+                       // task = new InitTCPClientTask();
+                        //task.execute(new Void[0]);
 
                         System.out.println("task execute");
 /*
@@ -240,9 +275,6 @@ public class TCPCommunicator {
                 String inMsg="";
                 while(true)
                 {
-
-
-
 
                     boolean end = false;
                     while(!end) {

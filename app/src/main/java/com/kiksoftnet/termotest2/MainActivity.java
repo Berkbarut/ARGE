@@ -141,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
     String islemciString="";
     String tipString="Kablolu";
     String aralikBirimString = "sn";
-   // private TCPReceiver tcpReceiver;
+    // private TCPReceiver tcpReceiver;
     private String receivedData;
     private TextView olculenSic;
     private TextView sicaklikTest;
@@ -575,7 +575,7 @@ public class MainActivity extends AppCompatActivity {
         buttonSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               // urunString=editTextProduct.getText().toString();
+                // urunString=editTextProduct.getText().toString();
                 //islemciString=editTextIslemci.getText().toString();
 
                 // Kullanıcının girdiği verileri al
@@ -594,7 +594,7 @@ public class MainActivity extends AppCompatActivity {
         configureWebView();
         webView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
         webView2.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
-       // loadWebsite();
+        // loadWebsite();
 //
 //        websiteRefreshTimer = new Timer();
 //        websiteRefreshTimer.scheduleAtFixedRate(new TimerTask() {
@@ -618,10 +618,16 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
+
+
+
         urunSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 buttonSave.setEnabled(true);
+                urunString=urunSpinner.getSelectedItem().toString();
+
             }
 
             @Override
@@ -633,6 +639,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 buttonSave.setEnabled(true);
+                islemciString=islemciSpinner.getSelectedItem().toString();
             }
 
             @Override
@@ -682,8 +689,8 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-      //  editTextAralik.setText("10");
-       // startRefreshTimer();
+          //editTextAralik.setText("10");
+         //startRefreshTimer();
     }
 
     private void showInputDialogUrun() {
@@ -809,6 +816,7 @@ public class MainActivity extends AppCompatActivity {
 
     public TCPCommunicator tcpCommunicator;
     public static boolean stopControl=false;
+    Thread websiteRefreshThread;
 
     private void startRefreshTimer() {
         if(!editTextAralik.getText().toString().equals("")){
@@ -826,7 +834,67 @@ public class MainActivity extends AppCompatActivity {
                 String testcihaziip = "192.168.2.245";
                 System.out.println(testcihaziip);
                 tcpCommunicator.init(testcihaziip, 9876, terminal);
-                websiteRefreshTimer = new Timer();
+
+
+                websiteRefreshThread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        websiteRefreshTimer = new Timer();
+                        websiteRefreshTimer.scheduleAtFixedRate(new TimerTask() {
+                            @Override
+                            public void run() {
+                                Log.d("KAMERA: ", "YENİLENDİ");
+
+                                //readSerialData();
+
+                                Log.d("SERİ DATA: "," "+tempGelen);
+
+                                System.out.println("Handler çalışıyor:"+WEBSITE_REFRESH_INTERVAL);
+
+                                if (!tempGelen.equals("0")) {
+                                    int equalsIndex = tempGelen.indexOf("=");
+                                    String tempDeger = tempGelen.substring(equalsIndex + 1);
+
+                                    //olculenSic.setText(tempDeger);
+                                    terminal.setTempgelen(tempDeger);
+                                }
+                                if (!tcpCommunicator.isConnected()) {
+                                    System.out.println("TCP YENİDEN BAĞLANMAYA ÇALIŞILIYOR");
+                                    tcpCommunicator = new TCPCommunicator();
+                                    tcpCommunicator.init(testcihaziip, 9876, terminal);
+                                    System.out.println("TCP YENİDEN BAĞLANMAYA ÇALIŞILIYOR");
+                                } else {
+                                    tcpCommunicator.writeToSocket("m", UIHandler, getApplicationContext(), terminal);
+                                }
+
+
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        loadWebsite();
+                                    }
+                                });
+
+
+
+                                System.gc();
+                                Runtime.getRuntime().gc();
+                            }
+                        }, 0, WEBSITE_REFRESH_INTERVAL);
+                    }
+                });
+
+                websiteRefreshThread.start();
+
+
+
+
+
+
+
+
+
+                /*websiteRefreshTimer = new Timer();
                 websiteRefreshTimer.scheduleAtFixedRate(new TimerTask() {
                     @Override
                     public void run() {
@@ -840,84 +908,32 @@ public class MainActivity extends AppCompatActivity {
 
                                 Log.d("SERİ DATA: "," "+tempGelen);
 
-
+                                System.out.println("Handler çalışıyor:"+WEBSITE_REFRESH_INTERVAL);
 
                                 if(!tempGelen.equals("0")){
 
                                     int equalsIndex = tempGelen.indexOf("=");
                                     String tempDeger=tempGelen.substring(equalsIndex+1);
 
-                                    if(!roomTempControl){
-                                        olculenSic.setTextColor(Color.parseColor("#FF0000"));
-                                        //sicaklikTest.setTextColor(Color.parseColor("#FF0000"));
-                                    }
-                                    olculenSic.setText(tempDeger);
+//                                    if(!roomTempControl){
+//                                        olculenSic.setTextColor(Color.parseColor("#FF0000"));
+//                                        //sicaklikTest.setTextColor(Color.parseColor("#FF0000"));
+//                                    }
+                                    //olculenSic.setText(tempDeger);
                                     terminal.setTempgelen(tempDeger);
                                     //sicaklikTest.setVisibility(View.VISIBLE);
                                     //olculenSic.setVisibility(View.VISIBLE);
 
                                 }
-
-
                                 if(!tcpCommunicator.isConnected()){
                                     System.out.println("TCP YENİDEN BAĞLANMAYA ÇALIŞILIYOR");
                                     tcpCommunicator = new TCPCommunicator();
                                     tcpCommunicator.init(testcihaziip, 9876, terminal);
                                     System.out.println("TCP YENİDEN BAĞLANMAYA ÇALIŞILIYOR");
+                                }else{
+                                    tcpCommunicator.writeToSocket("m", UIHandler, getApplicationContext(), terminal);
                                 }
 
-                                tcpCommunicator.writeToSocket("m", UIHandler, getApplicationContext(), terminal);
-
-
-
-
-                                //new TCPReceiver(SERVER_IP, SERVER_PORT, MainActivity.this).execute();
-
-//                                try {
-//                                    Socket socket = new Socket("192.168.2.245", 9876); // Sunucu IP ve portunu buraya ekleyin
-//                                    PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-//                                    BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//                                    System.out.println("Bağlandı");
-//                                    boolean isRecieved = false;
-//
-//
-//                                    String receivedData="";
-//
-//                                        out.print('m');
-//                                        out.flush();
-//                                        // Sunucudan gelen veriyi al
-//
-//                                            System.out.println("in readyyyyy");
-//                                            // Sunucudan gelen veriyi al
-//                                            int kontrol=0;
-//                                            while(true){
-//                                                receivedData += in.readLine();
-//                                                if(receivedData.contains("254")){
-//                                                    break;
-//                                                }
-//                                                kontrol++;
-//                                                if (kontrol>100)
-//                                                    break;
-//                                            }
-//                                            System.out.println("Veri geldi:"+receivedData);
-//                                            //Log.d("TcpReceiver", "Alınan Veri: " + receivedData);
-//
-//                                            if(receivedData!=null){
-//                                                handleReceivedData(receivedData);
-//                                                System.out.println("Veri işlendi");
-//                                                receivedData="";
-//                                            }
-//
-//
-//
-//                                    out.close();
-//                                    in.close();
-//                                    socket.close();
-//                                    System.out.println("Bağlantı kapatıldı");
-//                                } catch (IOException e) {
-//                                    Log.e("TcpReceiver", "Hata: " + e.getMessage());
-//
-//                                }
                                 loadWebsite();
                                 System.gc();
                                 Runtime.getRuntime().gc();
@@ -926,7 +942,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                         });
                     }
-                }, 0, WEBSITE_REFRESH_INTERVAL);
+                }, 0, WEBSITE_REFRESH_INTERVAL);*/
 
                 startButton.setEnabled(false);
                 stopButton.setEnabled(true);
@@ -939,10 +955,13 @@ public class MainActivity extends AppCompatActivity {
 
     // Timer'ı durduran metod
     private void stopRefreshTimer() {
-        if (websiteRefreshTimer != null) {
+        if (websiteRefreshThread!=null && websiteRefreshTimer != null) {
+
             websiteRefreshTimer.cancel();
             websiteRefreshTimer.purge();
             websiteRefreshTimer = null;
+            websiteRefreshThread.interrupt();
+            websiteRefreshThread=null;
             stopControl=false;
 
             startButton.setEnabled(true);
@@ -996,7 +1015,7 @@ public class MainActivity extends AppCompatActivity {
 
     SerialTerminalFragment serialTerminalFragment = new SerialTerminalFragment(this,device);
 
-     public String tempGelen="0";
+    public String tempGelen="0";
 //    public void showReceivedData(String data){
 //    tempGelen=data;
 //    }
@@ -1004,7 +1023,7 @@ public class MainActivity extends AppCompatActivity {
     public void readSerialData() {
         serialTerminalFragment.read();
         //serialTerminalFragment.disconnect();
-       //String seriDeger = kabloluSeriBaglanti.read();
+        //String seriDeger = kabloluSeriBaglanti.read();
         //return seriDeger;
     }
 
@@ -1127,9 +1146,12 @@ public class MainActivity extends AppCompatActivity {
                     String islemciAdi = resultSet.getString("Islemci");
                     islemciList.add(islemciAdi);
                 }
+                statement.close();
+                resultSet.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+
 
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
@@ -1161,6 +1183,9 @@ public class MainActivity extends AppCompatActivity {
                     String urunAdi = resultSet.getString("Urun");
                     urunList.add(urunAdi);
                 }
+
+                statement.close();
+                resultSet.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -1313,8 +1338,14 @@ public class MainActivity extends AppCompatActivity {
 
                     int lastPrimaryKey1 = resultSet1.getInt("ID");
                     insertedID=lastPrimaryKey1;
+                    terminal.setInsertedID(insertedID);
+
 
                 }
+
+                statement1.close();
+                resultSet1.close();
+
             } catch (SQLException e) {
                 e.printStackTrace();
             } catch (ParseException e) {
