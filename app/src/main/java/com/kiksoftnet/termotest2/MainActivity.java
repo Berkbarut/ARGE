@@ -657,6 +657,15 @@ public class MainActivity extends AppCompatActivity {
           //editTextAralik.setText("10");
          //startRefreshTimer();
         buttonSave.setEnabled(false);
+        buttonReset.setEnabled(false);
+
+        isCameraStarted = true;
+
+        startRefreshTimer();
+        startChronometer();
+
+
+
     }
 
     private void showInputDialogUrun() {
@@ -1275,6 +1284,16 @@ public class MainActivity extends AppCompatActivity {
 
                     String aralik = resultSet1.getString("Aralik");
                     editTextAralik.setText(aralik);
+
+                    String birim = resultSet1.getString("Aralik_Birimi");
+                    if (birim.equals("sn")){
+                        spinnerAralik.setSelection(0);
+                        aralikbirim=true;
+                    }
+                    else if(birim.equals("dak")){
+                        spinnerAralik.setSelection(1);
+                        aralikbirim=false;
+                    }
 
 
                     int lastPrimaryKey1 = resultSet1.getInt("ID");
