@@ -165,6 +165,11 @@ public class MainActivity extends AppCompatActivity {
     private static final int SERVER_PORT = 9876; // Sunucu portu
     private long startTime = 0;
     private boolean isTimerRunning = false;
+    int webTestId=0;
+    int islemTipi=0;
+    int kaydedilenId=0;
+    int gerceklesti=0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -243,6 +248,10 @@ public class MainActivity extends AppCompatActivity {
         getDataFromMSSQL();
 
         getVeriSayisiFromMSSQL();
+
+        devamSure = veriSayisi*WEBSITE_REFRESH_INTERVAL;
+
+
 
 
 
@@ -522,6 +531,7 @@ public class MainActivity extends AppCompatActivity {
         stopButton = findViewById(R.id.stopCameraButton);
 
 
+
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -531,6 +541,8 @@ public class MainActivity extends AppCompatActivity {
                     buttonReset.setEnabled(false);
 
                     isCameraStarted = true;
+
+
 
                     startRefreshTimer();
                     startChronometer();
@@ -634,24 +646,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+
         buttonReset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                editTextAralik.setText("");
-                editTextCalibration.setText("0.0");
-                editTextNegatif.setText("0.0");
-                editTextPozitif.setText("0.0");
-                spinnerFunction.setSelection(0);
-                fonksiyonString=spinnerFunction.getSelectedItem().toString();
-                spinnerTip.setSelection(0);
-                tipString=spinnerTip.getSelectedItem().toString();
-                islemciSpinner.setSelection(0);
-                islemciString=islemciSpinner.getSelectedItem().toString();
-                urunSpinner.setSelection(0);
-                urunString=urunSpinner.getSelectedItem().toString();
-                insertedID=0;
-                devamSure=0;
-                textViewTestId.setText("Test ID: "+insertedID);
+            resetViews();
             }
         });
           //editTextAralik.setText("10");
@@ -664,8 +664,34 @@ public class MainActivity extends AppCompatActivity {
         startRefreshTimer();
         startChronometer();
 
+        startWebTestTimer();
 
 
+
+
+    }
+    public void resetViews(){
+        editTextAralik.setText("");
+        editTextCalibration.setText("0.0");
+        editTextNegatif.setText("0.0");
+        editTextPozitif.setText("0.0");
+        spinnerFunction.setSelection(0);
+        fonksiyonString=spinnerFunction.getSelectedItem().toString();
+        spinnerTip.setSelection(0);
+        tipString=spinnerTip.getSelectedItem().toString();
+        islemciSpinner.setSelection(0);
+        islemciString=islemciSpinner.getSelectedItem().toString();
+        urunSpinner.setSelection(0);
+        urunString=urunSpinner.getSelectedItem().toString();
+        insertedID=0;
+        devamSure=0;
+
+        TextView textViewStartTime = findViewById(R.id.textViewStartTime);
+        textViewStartTime.setText("Başlangıç Zamanı: " );
+        TextView textViewEndTime = findViewById(R.id.textViewEndTime);
+        textViewEndTime.setText("Bitiş Zamanı: " );
+
+        textViewTestId.setText("Test ID: "+insertedID);
     }
 
     private void showInputDialogUrun() {
@@ -739,7 +765,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void startChronometer() {
         if (!isRunning) {
-            devamSure = (veriSayisi+1)*WEBSITE_REFRESH_INTERVAL;
             chronometer.setBase(SystemClock.elapsedRealtime() - devamSure);
 //          chronometer.setBase(SystemClock.elapsedRealtime() - pauseOffset);
             chronometer.start();
@@ -790,6 +815,64 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    private Handler webTestHandler;
+    private Runnable webTestRunnable;
+    private Timer webTestRefreshTimer;
+
+    private void startWebTestTimer() {
+        webTestHandler = new Handler();
+
+        webTestRunnable = new Runnable() {
+            @Override
+            public void run() {
+                islemTipi = getTestFromMSSQL();
+                System.out.println("UZAKTAN BAŞLATMA KONTROL");
+
+                if (islemTipi == 0 && gerceklesti==0) {
+                    UpdateWebTestDataMSSQL(islemTipi,webTestId,1);
+                    pauseChronometer();
+                    stopRefreshTimer();
+
+                } else if (islemTipi == 1 && gerceklesti==0) {
+                    insertedID = webTestId;
+
+                    if(kaydedilenId!=webTestId){
+                        resetViews();
+                        getDataFromWebTest();
+                    }
+
+                    UpdateWebTestDataMSSQL(islemTipi,webTestId,1);
+                    startRefreshTimer();
+                    startChronometer();
+                }
+
+                System.gc();
+                Runtime.getRuntime().gc();
+
+                // Belirli bir süre sonra bu runnable'ı tekrar çalıştır
+                webTestHandler.postDelayed(this, 15000);
+            }
+        };
+
+        // İlk çalıştırmayı başlat
+        webTestHandler.post(webTestRunnable);
+//
+//        startButton.setEnabled(false);
+//        stopButton.setEnabled(true);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public TCPCommunicator tcpCommunicator;
     public static boolean stopControl=false;
@@ -827,6 +910,8 @@ public class MainActivity extends AppCompatActivity {
                                 Log.d("SERİ DATA: "," "+tempGelen);
 
                                 System.out.println("Handler çalışıyor:"+WEBSITE_REFRESH_INTERVAL);
+
+
 
                                 if (!tempGelen.equals("0")) {
                                     int equalsIndex = tempGelen.indexOf("=");
@@ -899,25 +984,23 @@ public class MainActivity extends AppCompatActivity {
         webSettings2.setJavaScriptEnabled(true);
         // Diğer WebView ayarlarını burada konfigure edebilirsiniz
     }
+    int graphCount=60;
 
     private void loadWebsite() {
+
         String websiteUrl = "http://192.168.1.222:8080/uretim/uretimg.nsf/Arge.xsp";
         webView.loadUrl(websiteUrl);
-        String websiteUrl2 = "http://192.168.1.222:8080/uretim/uretimg.nsf/Arge_Grafik.xsp";
-        webView2.loadUrl(websiteUrl2);
+        if(graphCount == 60){
+            String websiteUrl2 = "http://192.168.1.222:8080/uretim/uretimg.nsf/Arge_Grafik.xsp";
+            webView2.loadUrl(websiteUrl2);
+            graphCount=0;
+        }
+        graphCount++;
     }
 
 
 
     boolean roomTempControl=true;
-
-
-
-
-
-
-
-
 
     UsbDevice device;
 
@@ -1157,6 +1240,60 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+    private int getTestFromMSSQL() {
+
+        int islem_tipi=0;
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
+        try {
+            Class.forName(Classes);
+            connection = DriverManager.getConnection(url, username, password);
+
+            try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM TBL_WEBTEST");
+                 ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    islem_tipi = resultSet.getInt("Islem_Tipi");
+                    webTestId=resultSet.getInt("Test_ID");
+                    gerceklesti=resultSet.getInt("Gerceklesti");
+
+                }
+
+                statement.close();
+                resultSet.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM TBL_KAYDEDILENTEST");
+                 ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    kaydedilenId=resultSet.getInt("TEST_ID");
+                }
+
+                statement.close();
+                resultSet.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                connection = null;
+            }
+        }
+
+        return islem_tipi;
+    }
+
+
+
 
 
     private void getDataFromMSSQL() {
@@ -1177,7 +1314,12 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            try (PreparedStatement statement1 = connection.prepareStatement("SELECT TOP 1 * FROM TBL_TEST ORDER BY ID DESC");
+
+
+
+
+
+            try (PreparedStatement statement1 = connection.prepareStatement("SELECT TOP 1 * FROM TBL_TEST WHERE ID = (SELECT TEST_ID FROM TBL_KAYDEDILENTEST)");
                  ResultSet resultSet1 = statement1.executeQuery()) {
                 if (resultSet1.next()) {
                     float kalibrasyon = resultSet1.getFloat("Kalibrasyon");
@@ -1326,6 +1468,190 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    private void getDataFromWebTest() {
+
+        //ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.INTERNET}, PackageManager.PERMISSION_GRANTED);
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+        try {
+            try {
+                Class.forName(Classes);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            try {
+                connection = DriverManager.getConnection(url, username, password);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            String webtestQuery = "SELECT TOP 1 Test_ID FROM TBL_WEBTEST ORDER BY Test_ID DESC";
+
+            try (PreparedStatement webtestStatement = connection.prepareStatement(webtestQuery);
+                 ResultSet webtestResultSet = webtestStatement.executeQuery()) {
+
+                if (webtestResultSet.next()) {
+                    int webTestID = webtestResultSet.getInt("Test_ID");
+
+                    String query = "UPDATE TBL_KAYDEDILENTEST SET Test_ID = ?";
+
+                    try (PreparedStatement statement = connection.prepareStatement(query)) {
+                        statement.setInt(1, webTestID);
+                        statement.executeUpdate();
+                    }
+
+
+
+                    try (PreparedStatement statement1 = connection.prepareStatement("SELECT * FROM TBL_TEST WHERE ID = ? ORDER BY ID DESC")){
+
+                         statement1.setInt(1, webTestID);
+
+                        try (ResultSet resultSet1 = statement1.executeQuery()) {
+                        if (resultSet1.next()) {
+                            float kalibrasyon = resultSet1.getFloat("Kalibrasyon");
+                            editTextCalibration.setText(String.valueOf(kalibrasyon));
+                            float histerisiz_poz = resultSet1.getFloat("Histerisiz_Pozitif");
+                            histerisizPozitifValue = histerisiz_poz;
+                            float histerisiz_neg = resultSet1.getFloat("Histerisiz_Negatif");
+                            histerisizNegatifValue = histerisiz_neg;
+                            String heat_cool = resultSet1.getString("Heat_Cool");
+                            if (heat_cool.equals("Heat")) {
+                                radioButtonHeat.setSelected(true);
+                                radioButtonCool.setSelected(false);
+                            } else if (heat_cool.equals("Cool")) {
+                                radioButtonCool.setSelected(true);
+                                radioButtonHeat.setSelected(false);
+                            }
+                            String fonksiyon = resultSet1.getString("Fonksiyon");
+                            if (fonksiyon.equals("TPI")) {
+                                spinnerFunction.setSelection(0);
+                            } else if (fonksiyon.equals("Modülasyon") || fonksiyon.equals("Modulasyon")) {
+                                spinnerFunction.setSelection(1);
+                            } else if (fonksiyon.equals("ON/OFF")) {
+                                spinnerFunction.setSelection(2);
+                            } else if (fonksiyon.equals("Akıllı") || fonksiyon.equals("Akilli")) {
+                                spinnerFunction.setSelection(3);
+                            }
+                            String urun = resultSet1.getString("Urun");
+                            //editTextProduct.setText(urun); //TODO İLK BAŞTA NASIL GELECEK O BELİRLENMELİ
+                            int urunIndex = -1;
+                            for (int i = 0; i < urunList.size(); i++) {
+                                if (urunList.get(i).equals(urun)) {
+                                    urunIndex = i;
+                                    break;
+                                }
+                            }
+                            if (urunIndex != -1) {
+                                urunSpinner.setSelection(urunIndex);
+                            }
+                            String islemci = resultSet1.getString("Islemci");
+                            int islemciIndex = -1;
+                            for (int i = 0; i < islemciList.size(); i++) {
+                                if (islemciList.get(i).equals(islemci)) {
+                                    islemciIndex = i;
+                                    break;
+                                }
+                            }
+                            if (islemciIndex != -1) {
+                                islemciSpinner.setSelection(islemciIndex);
+                            }
+
+
+                            String tip = resultSet1.getString("Tip");
+                            if (tip.equals("Kablolu")) {
+                                spinnerTip.setSelection(0);
+                            } else if (tip.equals("Kablosuz")) {
+                                spinnerTip.setSelection(1);
+                            } else if (tip.equals("Wifi")) {
+                                spinnerTip.setSelection(2);
+                            }
+
+
+                            Date baslama = resultSet1.getTimestamp("Baslama_Zamani");
+                            if (baslama != null) {
+                                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy 'Saat:' HH:mm");
+                                String formattedDate = dateFormat.format(baslama);
+                                TextView textViewStartTime = findViewById(R.id.textViewStartTime);
+                                textViewStartTime.append(formattedDate);
+
+                                String tempbaslangic = textViewStartTime.getText().toString().replace("Başlangıç Zamanı: ", "");
+                                tempbaslangic = tempbaslangic.replace("Saat: ", "");
+
+                                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+                                baslangicDate = sdf.parse(tempbaslangic);
+                            }
+
+
+                            Date bitis = resultSet1.getTimestamp("Bitis_Zamani");
+                            if (bitis != null) {
+                                SimpleDateFormat dateFormat2 = new SimpleDateFormat("dd/MM/yyyy 'Saat:' HH:mm");
+                                String formattedDate2 = dateFormat2.format(bitis);
+                                TextView textViewEndTime = findViewById(R.id.textViewEndTime);
+                                textViewEndTime.append(formattedDate2);
+
+                                String tempbitis = textViewEndTime.getText().toString().replace("Bitiş Zamanı: ", "");
+                                tempbitis = tempbitis.replace("Saat: ", "");
+                                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+                                bitisDate = sdf.parse(tempbitis);
+
+
+                            }
+
+
+                            String aralik = resultSet1.getString("Aralik");
+                            editTextAralik.setText(aralik);
+
+                            String birim = resultSet1.getString("Aralik_Birimi");
+                            if (birim.equals("sn")) {
+                                spinnerAralik.setSelection(0);
+                                aralikbirim = true;
+                            } else if (birim.equals("dak")) {
+                                spinnerAralik.setSelection(1);
+                                aralikbirim = false;
+                            }
+
+
+                            int lastPrimaryKey1 = resultSet1.getInt("ID");
+                            insertedID = lastPrimaryKey1;
+                            terminal.setInsertedID(insertedID);
+
+                            textViewTestId.setText("Test ID: " + insertedID);
+
+                        }
+
+                        statement1.close();
+                        resultSet1.close();}
+
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                connection = null;
+            }
+        }
+
+    }
+
+
+
+
+
+
+
+
 
 
 
@@ -1394,6 +1720,8 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
+
                 try (PreparedStatement statement1 = connection.prepareStatement("SELECT TOP 1 ID FROM TBL_TEST ORDER BY ID DESC");
                  ResultSet resultSet1 = statement1.executeQuery()) {
                 if (resultSet1.next()) {
@@ -1403,6 +1731,12 @@ public class MainActivity extends AppCompatActivity {
                     textViewTestId.setText("Test ID: "+insertedID);
                 }
             }
+                String query = "UPDATE TBL_KAYDEDILENTEST SET Test_ID = ?";
+
+                try (PreparedStatement statement = connection.prepareStatement(query)) {
+                    statement.setInt(1, insertedID);
+                    statement.executeUpdate();
+                }
 
 
 
@@ -1516,6 +1850,50 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+
+
+    private void UpdateWebTestDataMSSQL(int islem_tipi,int test_id,int gerceklesti) {
+
+        //ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.INTERNET}, PackageManager.PERMISSION_GRANTED);
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+        try {
+            try {
+                Class.forName(Classes);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            try {
+                connection = DriverManager.getConnection(url,username,password);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            String sql = "UPDATE TBL_WEBTEST SET Islem_Tipi = ?, Test_ID = ?, Gerceklesti = ?";
+            try ( PreparedStatement pstmt = connection.prepareStatement(sql)) {
+                pstmt.setInt(1, islem_tipi);
+                pstmt.setInt(2, test_id);
+                pstmt.setInt(3, gerceklesti);
+                pstmt.executeUpdate();
+                System.out.println("Veri başarıyla eklendi.");
+            } catch (SQLException e) {
+                System.out.println("SQL Server Hatası");
+                e.printStackTrace();
+            }
+        } finally {
+            try {
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                connection = null;
+            }
+        }
+    }
+
+
+
 
     private Date baslangicDate;
     private Date bitisDate;

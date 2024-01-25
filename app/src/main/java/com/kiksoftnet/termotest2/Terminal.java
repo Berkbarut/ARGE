@@ -55,6 +55,7 @@ public class Terminal {
         String comfortMode = getSubstringBetween(receivedData, "96", "254");
         String programMode = getSubstringBetween(receivedData, "112", "254");
         String ecoMode = getSubstringBetween(receivedData, "92", "254");
+        String holidayMod = getSubstringBetween(receivedData,"108","254");
         String minute = getSubstringBetween(receivedData, "184", "254");
         String hour = getSubstringBetween(receivedData, "147", "254");
         String weekday = getSubstringBetween(receivedData, "192", "254");
@@ -66,9 +67,7 @@ public class Terminal {
         String detectStatus = getSubstringBetween(receivedData, "154", "254");
 
 
-
-
-        saveTcpDataToMSSQL(roomTemp,setTemp,batteryLevel,comfortMode,programMode,ecoMode,minute,hour,weekday,activeProgram,lockStatus,segmentStatus, systemOnOff, wifiStatus,detectStatus,tempGelen);
+        saveTcpDataToMSSQL(roomTemp,setTemp,batteryLevel,comfortMode,programMode,ecoMode,minute,hour,weekday,activeProgram,lockStatus,segmentStatus, systemOnOff, wifiStatus,detectStatus,tempGelen,holidayMod);
 
         receivedData=null;
 
@@ -90,7 +89,7 @@ public class Terminal {
         }
     }
 
-    private void saveTcpDataToMSSQL(String roomTemp, String setTemp, String batteryLevel, String comfortMode, String programMode, String ecoMode, String minute, String hour, String weekday, String activeProgram, String lockStatus, String segmentStatus, String systemOnOff, String wifiStatus, String detectStatus, String tempGelen) {
+    private void saveTcpDataToMSSQL(String roomTemp, String setTemp, String batteryLevel, String comfortMode, String programMode, String ecoMode, String minute, String hour, String weekday, String activeProgram, String lockStatus, String segmentStatus, String systemOnOff, String wifiStatus, String detectStatus, String tempGelen, String holidayMod) {
 
 
         //ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.INTERNET}, PackageManager.PERMISSION_GRANTED);
@@ -99,15 +98,10 @@ public class Terminal {
         StrictMode.setThreadPolicy(policy);
 
 
-
-
-
         try {
             Class.forName(Classes);
             connection = DriverManager.getConnection(url,username,password);
-            String insertProcedure = "{call InsertArge(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
-
-
+            String insertProcedure = "{call InsertArge(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 
 //            try (PreparedStatement statement1 = connection.prepareStatement("SELECT TOP 1 ID FROM TBL_TEST ORDER BY ID DESC");
 //                 ResultSet resultSet1 = statement1.executeQuery()) {
@@ -148,6 +142,8 @@ public class Terminal {
                 }
                 else
                     callableStatement.setObject(22, null);
+                callableStatement.setInt(23,Integer.parseInt(holidayMod));
+                callableStatement.setString(24,systemOnOff);
 
 
 
