@@ -602,6 +602,7 @@ public class MainActivity extends AppCompatActivity {
         webView2 = findViewById(R.id.webView2);
 
         configureWebView();
+
         webView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
         webView2.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
 
@@ -822,6 +823,7 @@ public class MainActivity extends AppCompatActivity {
     private void startWebTestTimer() {
         webTestHandler = new Handler();
 
+
         webTestRunnable = new Runnable() {
             @Override
             public void run() {
@@ -830,18 +832,22 @@ public class MainActivity extends AppCompatActivity {
 
                 if (islemTipi == 0 && gerceklesti==0) {
                     UpdateWebTestDataMSSQL(islemTipi,webTestId,1);
+
+                    if(kaydedilenId==webTestId){
+                        pauseChronometer();
+                        stopRefreshTimer();
+                    }
+
+
+                } else if (islemTipi == 1 && gerceklesti==0) {
                     pauseChronometer();
                     stopRefreshTimer();
 
-                } else if (islemTipi == 1 && gerceklesti==0) {
                     insertedID = webTestId;
-
-                    if(kaydedilenId!=webTestId){
-                        resetViews();
-                        getDataFromWebTest();
-                    }
-
+                    resetViews();
+                    getDataFromWebTest();
                     UpdateWebTestDataMSSQL(islemTipi,webTestId,1);
+
                     startRefreshTimer();
                     startChronometer();
                 }
@@ -850,7 +856,7 @@ public class MainActivity extends AppCompatActivity {
                 Runtime.getRuntime().gc();
 
                 // Belirli bir süre sonra bu runnable'ı tekrar çalıştır
-                webTestHandler.postDelayed(this, 15000);
+                webTestHandler.postDelayed(this, 30000);
             }
         };
 
@@ -980,6 +986,7 @@ public class MainActivity extends AppCompatActivity {
     private void configureWebView() {
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
+
         WebSettings webSettings2 = webView2.getSettings();
         webSettings2.setJavaScriptEnabled(true);
         // Diğer WebView ayarlarını burada konfigure edebilirsiniz
@@ -988,11 +995,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadWebsite() {
 
-        String websiteUrl = "http://192.168.1.222:8080/uretim/uretimg.nsf/Arge.xsp";
+        String websiteUrl = "http://192.168.1.220:8080/uretim/uretimg.nsf/Arge.xsp";
         webView.loadUrl(websiteUrl);
+        
+
         if(graphCount == 60){
-            String websiteUrl2 = "http://192.168.1.222:8080/uretim/uretimg.nsf/Arge_Grafik.xsp";
+            String websiteUrl2 = "http://192.168.1.220:8080/uretim/uretimg.nsf/Arge_Grafik.xsp";
             webView2.loadUrl(websiteUrl2);
+
             graphCount=0;
         }
         graphCount++;
